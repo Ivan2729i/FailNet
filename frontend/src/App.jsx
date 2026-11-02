@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, Routes, Route, Navigate, useLocation } from 'react-router'
 import SofiPage from './components/SofiPage.jsx'
+import TwinPage from './components/TwinPage.jsx'
+import './twin.css'
 import './sofi.css'
 
 // Iconos SVG internos
@@ -36,7 +38,7 @@ const navegacion = [
 
 const herramientas = [
   { nombre: 'SOFI', icono: 'sofi', ruta: '/sofi', disponible: true },
-  { nombre: 'Digital Twin', icono: 'twin', ruta: '/digital-twin', disponible: false },
+  { nombre: 'Digital Twin', icono: 'twin', ruta: '/digital-twin', disponible: true },
   { nombre: 'PNL', icono: 'pnl', ruta: '/pnl', disponible: false },
   { nombre: 'Blockchain', icono: 'blockchain', ruta: '/blockchain', disponible: false },
 ]
@@ -471,8 +473,8 @@ function App() {
                   <div className="module-information"><h3>{modulo.nombre}</h3><p>{modulo.descripcion}</p></div>
                     <div className="module-extra">
                       <span className="module-type">{modulo.tipo}</span>
-                      {modulo.nombre === 'SOFI' ? (
-                        <Link to="/sofi" className="module-open-button">Abrir SOFI ↗</Link>
+                      {modulo.nombre === 'SOFI' || modulo.nombre === 'Digital Twin' ? (
+                        <Link to={modulo.nombre === 'SOFI' ? '/sofi' : '/digital-twin'} className="module-open-button">Abrir {modulo.nombre} ↗</Link>
                       ) : (
                         <span className="module-state">Interfaz en desarrollo</span>
                       )}
@@ -484,7 +486,7 @@ function App() {
 
             </>} />
             <Route path="/sofi" element={<SofiPage onAnalisisGuardado={cargarDatos} />} />
-            <Route path="/digital-twin" element={<PaginaEnDesarrollo titulo="Digital Twin" descripcion="Clasificación de intensidad de tráfico mediante modelos de Machine Learning." />} />
+            <Route path="/digital-twin" element={<TwinPage onAnalisisGuardado={cargarDatos} />} />
             <Route path="/pnl" element={<PaginaEnDesarrollo titulo="Procesamiento de lenguaje natural" descripcion="Clasificación, entidades y resumen de reportes de red." />} />
             <Route path="/blockchain" element={<PaginaEnDesarrollo titulo="Blockchain" descripcion="Verificación de integridad del historial de análisis." />} />
             <Route path="*" element={<Navigate to="/" replace />} />
