@@ -1,0 +1,192 @@
+/* SOFI: conserva drag & drop y animaciones del botón existentes */
+/* FailNet: controles de acceso a SOFI dentro del menú y la página general. */
+.sidebar-tool-button {
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  text-align: left;
+  cursor: pointer;
+}
+.sidebar-tool-button.sidebar-link-active,
+.sidebar-tool-button.sidebar-link-active:hover {
+  background: var(--lime);
+  color: var(--forest);
+  font-weight: 750;
+}
+.sidebar-tool-button:not(.sidebar-link-active):hover {
+  background: var(--forest-soft);
+  color: #fff;
+}
+.module-open-button {
+  border: 1px solid #7dd3fc;
+  border-radius: 6px;
+  background: #e0f2fe;
+  padding: 7px 11px;
+  color: #075985;
+  font-size: 11px;
+  font-weight: 750;
+  transition: background .2s ease;
+}
+.module-open-button:hover { background: #bae6fd; }
+
+
+/* ==================================================
+   FAILNET / SOFI - ZONAS DE CARGA POR DRAG & DROP
+   ================================================== */
+.sofi-dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 164px;
+  padding: 21px;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1.5px dashed #b8c4cf;
+  border-radius: 9px;
+  transition: border-color .22s ease, background-color .22s ease,
+              box-shadow .22s ease, transform .22s ease;
+}
+.sofi-dropzone:hover:not(.is-disabled) {
+  border-color: #0284c7;
+  background: #f1f9ff;
+}
+.sofi-dropzone.has-file { border-style: solid; border-color: #93c5dd; }
+.sofi-dropzone.is-over {
+  border-color: #0284c7;
+  background: #e0f2fe;
+  box-shadow: inset 0 0 0 2px #7dd3fc, 0 8px 24px rgba(2,132,199,.1);
+  transform: translateY(-2px);
+}
+.sofi-dropzone.is-disabled { opacity: .75; }
+.sofi-dropzone-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sofi-dropzone-head svg { flex: 0 0 auto; color: #64748b; transition: color .2s, transform .2s; }
+.sofi-dropzone.is-over .sofi-dropzone-head svg { color: #0369a1; transform: translateY(-3px); }
+.sofi-dropzone-title { color: #334155; font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.sofi-dropzone-help { margin: 9px 0 0; min-height: 26px; color: #64748b; font-size: 12px; line-height: 1.6; }
+.sofi-dropzone.is-over .sofi-dropzone-help { font-weight: 700; color: #075985; }
+.sofi-dropzone-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 13px; }
+.sofi-file-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.sofi-file-button {
+  flex: 0 0 auto; border: none; border-radius: 6px; background: #e0f2fe;
+  padding: 9px 13px; color: #075985; font-size: 12px; font-weight: 700;
+  transition: background .2s, transform .2s, box-shadow .2s;
+}
+.sofi-file-button:not(:disabled):hover { background: #bae6fd; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(2,132,199,.12); }
+.sofi-file-button:not(:disabled):active { transform: scale(.97); }
+.sofi-file-button:focus-visible, .sofi-run-button:focus-visible { outline: 3px solid #0284c7; outline-offset: 3px; }
+.sofi-file-button:disabled { opacity: .5; cursor: not-allowed; }
+.sofi-file-name { min-width: 0; overflow-wrap: anywhere; color: #64748b; font-size: 11px; line-height: 1.45; }
+.sofi-dropzone-overlay {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  pointer-events: none; background: rgba(224,242,254,.82);
+  color: #075985; font-size: 12px; font-weight: 900; letter-spacing: .19em;
+  animation: sofi-drop-in .2s ease-out;
+}
+@keyframes sofi-drop-in { from {opacity:0; transform:scale(.98)} to {opacity:1; transform:scale(1)} }
+
+/* ==================================================
+   FAILNET / SOFI - BOTÓN DE ANÁLISIS
+   ================================================== */
+.sofi-run-button {
+  position: relative; isolation: isolate; display: inline-flex; align-items: center;
+  justify-content: center; gap: 12px; overflow: hidden; min-height: 46px;
+  border: 1px solid #1b2f53; border-radius: 8px; background: var(--forest);
+  padding: 12px 22px; color: #fff; font-family: inherit; font-size: 12px;
+  font-weight: 750; white-space: nowrap;
+  transition: background .23s ease, box-shadow .23s ease, transform .23s ease;
+}
+.sofi-run-button::before {
+  content: ''; position: absolute; z-index: -1; inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(125,211,252,.20) 50%, transparent 80%);
+  transform: translateX(-130%); transition: transform .65s ease;
+}
+.sofi-run-button:hover:not(:disabled) {
+  background: var(--forest-soft); transform: translateY(-2px);
+  box-shadow: 0 9px 20px rgba(10,17,40,.17);
+}
+.sofi-run-button:hover:not(:disabled)::before { transform: translateX(130%); }
+.sofi-run-button:active:not(:disabled) { transform: translateY(0) scale(.97); box-shadow: none; }
+.sofi-run-icon { transition: transform .22s ease; }
+.sofi-run-button:hover:not(:disabled) .sofi-run-icon { transform: translateX(4px); }
+.sofi-run-button.is-loading { opacity: .9; cursor: progress; box-shadow: none; transform: none; }
+.sofi-run-button.is-success { border-color: #0369a1; }
+.sofi-run-spinner {
+  display: inline-block; flex: 0 0 auto; width: 17px; height: 17px;
+  border: 2px solid rgba(255,255,255,.25); border-top-color: #7dd3fc;
+  border-radius: 50%; animation: sofi-spin .75s linear infinite;
+}
+@keyframes sofi-spin { to { transform: rotate(360deg) } }
+@media (prefers-reduced-motion: reduce) {
+  .sofi-dropzone, .sofi-dropzone-head svg, .sofi-file-button,
+  .sofi-run-button, .sofi-run-icon, .sofi-run-button::before { transition: none !important; }
+  .sofi-dropzone-overlay, .sofi-run-spinner { animation: none !important; }
+}
+
+/* Resultados, gráfica con ejes y tabla paginada */
+.sofi-results-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:18px; scroll-margin-top:95px; }
+.sofi-download-button { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:44px; padding:10px 17px; background:#e0f2fe; border:1px solid #bae6fd; color:#075985; font-size:12px; font-weight:750; border-radius:7px; transition:transform .18s,background .18s,box-shadow .18s; }
+.sofi-download-button:hover:not(:disabled) { background:#bae6fd; transform:translateY(-2px); box-shadow:0 6px 15px rgba(2,132,199,.12); }
+.sofi-download-button:disabled { opacity:.5; cursor:progress; }
+.sofi-main-error,.sofi-warning { padding:12px 16px; margin-top:18px; border-radius:7px; font-size:12px; line-height:1.6; }
+.sofi-main-error { border:1px solid #fecaca; background:#fff1f2; color:#be123c; }
+.sofi-warning { border:1px solid #fcd34d; background:#fffbeb; color:#92400e; }
+.sofi-chart-card,.sofi-table-card,.sofi-history { background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.sofi-chart-card { padding:24px 24px 15px; }
+.sofi-card-head { display:flex; align-items:start; justify-content:space-between; gap:16px; }
+.sofi-card-head h3,.sofi-table-head h3 { font-size:19px; line-height:1.3; font-weight:750; color:var(--ink); margin:0; }
+.sofi-card-head p,.sofi-table-head p { font-size:12px; color:var(--muted); margin:7px 0 0; }
+.sofi-chart-count { padding:6px 10px; border:1px solid var(--border); border-radius:6px; color:var(--muted); white-space:nowrap; font-size:11px; }
+.sofi-chart-scroll { overflow-x:auto; margin-top:22px; padding-bottom:12px; scrollbar-color:#9db2c3 #eef1f4; scrollbar-width:thin; }
+.sofi-chart-grid { display:grid; grid-template-columns:40px minmax(0,1fr); column-gap:12px; height:245px; }
+.sofi-chart-axis { display:flex; flex-direction:column; justify-content:space-between; align-items:flex-end; height:204px; padding:0 2px; font-size:10px; color:#64748b; font-variant-numeric:tabular-nums; }
+.sofi-chart-body { min-width:0; position:relative; height:245px; }
+.sofi-chart-lines { position:absolute; z-index:0; top:0; left:0; right:0; height:204px; display:flex; flex-direction:column; justify-content:space-between; pointer-events:none; }
+.sofi-chart-lines span { border-top:1px dashed #d9dee5; }
+.sofi-chart-bars { position:relative; display:flex; height:245px; gap:6px; z-index:1; }
+.sofi-chart-column { min-width:0; flex:1; height:100%; display:flex; flex-direction:column; align-items:center; }
+.sofi-chart-bar-wrap { position:relative; display:flex; flex-direction:column; justify-content:flex-end; flex:0 0 204px; width:100%; align-items:center; }
+.sofi-chart-bar { width:65%; max-width:30px; min-height:0; background:#7dd3fc; border-radius:4px 4px 0 0; transition:background .2s; }
+.sofi-chart-column:hover .sofi-chart-bar { background:#0284c7; }
+.sofi-chart-tooltip { opacity:0; position:absolute; bottom:calc(100% - 15px); left:50%; transform:translateX(-50%); z-index:5; padding:6px 9px; white-space:nowrap; border-radius:5px; background:#0a1128; color:#fff; font-size:10px; pointer-events:none; transition:opacity .15s; }
+.sofi-chart-bar-wrap:hover .sofi-chart-tooltip { opacity:1; }
+.sofi-chart-date { height:40px; display:flex; align-items:center; justify-content:center; color:#64748b; font-size:10px; white-space:nowrap; }
+.sofi-table-head { padding:20px 22px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; border-bottom:1px solid var(--border); }
+.sofi-filter-list { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.sofi-filter-list button { padding:8px 12px; background:#fff; border:1px solid var(--border); border-radius:6px; color:#475569; font-size:12px; font-weight:650; transition:background .2s,color .2s; }
+.sofi-filter-list button.is-active { color:#fff; background:var(--forest); border-color:var(--forest); }
+.sofi-table-scroll { max-height:420px; overflow:auto; scrollbar-color:#9db2c3 #f1f5f9; scrollbar-width:thin; }
+.sofi-result-table { width:100%; min-width:650px; border-collapse:separate; border-spacing:0; font-size:12px; text-align:left; }
+.sofi-result-table thead { position:sticky; top:0; z-index:2; background:#f8f6f1; color:#64748b; text-transform:uppercase; letter-spacing:.065em; font-size:10px; }
+.sofi-result-table th { padding:15px 20px; font-weight:700; white-space:nowrap; border-bottom:1px solid var(--border); }
+.sofi-result-table td { padding:15px 20px; color:var(--ink); border-bottom:1px solid #e7e0d7; white-space:nowrap; }
+.sofi-result-table tr:hover td { background:#f8fafc; }
+.sofi-tabular-muted { font-variant-numeric:tabular-nums; color:#64748b !important; }
+.sofi-class-badge { display:inline-flex; font-size:11px; font-weight:750; border-radius:5px; padding:5px 9px; }
+.sofi-class-badge.is-failure { color:#be123c; background:#fff1f2; }
+.sofi-class-badge.is-normal { color:#075985; background:#e0f2fe; }
+.sofi-table-feedback,.sofi-table-error { padding:24px; font-size:12px; color:#64748b; }
+.sofi-table-error { color:#be123c; }
+.sofi-table-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding:14px 20px; font-size:12px; color:#64748b; border-top:1px solid var(--border); }
+.sofi-paging-controls { display:flex; align-items:center; gap:9px; }
+.sofi-paging-controls select,.sofi-paging-controls button { border:1px solid var(--border); border-radius:5px; min-height:34px; background:#fff; color:var(--ink); padding:0 9px; }
+.sofi-paging-controls button { font-size:23px; font-weight:600; min-width:34px; line-height:1; }
+.sofi-paging-controls button:hover:not(:disabled) { border-color:#0284c7; background:#e0f2fe; }
+.sofi-paging-controls button:disabled { opacity:.35; cursor:not-allowed; }
+.sofi-page-count { font-variant-numeric:tabular-nums; white-space:nowrap; }
+.sofi-history { padding:21px 23px; }
+.sofi-history-empty { color:var(--muted); font-size:12px; padding:23px 0 5px; }
+.sofi-history-list { margin-top:17px; }
+.sofi-history-item { border-top:1px solid var(--border); display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:center; padding:14px 0; }
+.sofi-history-item > div { display:flex; flex-direction:column; gap:5px; }
+.sofi-history-item strong { font-weight:700; font-size:12px; color:var(--ink); }
+.sofi-history-item span { font-size:11px; color:var(--muted); }
+.sofi-history-item button { padding:9px 12px; border-radius:6px; border:1px solid var(--border); color:var(--forest); font-size:12px; font-weight:700; transition:background .2s; }
+.sofi-history-item button:hover:not(:disabled) { background:#e0f2fe; }
+.sofi-history-item button:disabled { opacity:.5; }
+@media (max-width:600px) { .sofi-chart-card{padding:18px 14px 10px} .sofi-table-head{padding:18px 14px} .sofi-table-footer{padding:12px} .sofi-paging-controls{gap:6px} .sofi-results-top{align-items:start} }
+@media (prefers-reduced-motion:reduce) { .sofi-chart-bar,.sofi-download-button,.sofi-filter-list button { transition:none !important; } }

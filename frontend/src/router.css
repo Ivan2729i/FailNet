@@ -1,0 +1,34 @@
+/* React Router: hacer el logotipo clicable sin cambiar su diseño. */
+.sidebar-brand-home {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  flex: 1;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.sidebar-brand-home:hover { opacity: .92; }
+.sidebar-brand-home:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; border-radius: 6px; }
+
+/* La opción SOFI y las futuras rutas son enlaces reales. */
+a.sidebar-tool-button { width: 100%; }
+a.sidebar-tool-button:hover { color: #fff; background: var(--forest-soft); }
+a.sidebar-tool-button.sidebar-link-active:hover { color: var(--forest); background: var(--lime); }
+
+.ruta-volver {
+  display: inline-block;
+  margin-top: 25px;
+  padding: 11px 16px;
+  color: var(--forest);
+  background: #e0f2fe;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #bae6fd;
+  border-radius: 7px;
+}
+.ruta-volver:hover { background: #bae6fd; }
+
+/* La tarjeta SOFI ahora usa Link, no un botón HTML. */
+a.module-open-button { text-decoration: none; display: inline-flex; align-items: center; }
