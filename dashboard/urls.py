@@ -15,4 +15,10 @@ urlpatterns = [
     path('twin/analisis/<str:analisis_id>/', views.obtener_analisis_twin, name='api_twin_detalle'),
     path('twin/analisis/<str:analisis_id>/predicciones/', views.paginar_predicciones_twin, name='api_twin_paginar'),
     path('twin/analisis/<str:analisis_id>/descargar/', views.descargar_csv_twin, name='api_twin_descargar'),
+    path('pnl/analizar/', views.analizar_texto_pnl, name='api_pnl_analizar'),
+    path('pnl/historial/', views.historial_pnl, name='api_pnl_historial'),
+    path('pnl/analisis/<str:analisis_id>/', views.detalle_pnl, name='api_pnl_detalle'),
+    path('pnl/analisis/<str:analisis_id>/descargar/', views.descargar_pnl, name='api_pnl_descargar'),
+    path('blockchain/estado/', views.obtener_estado_blockchain, name='api_blockchain_estado'),
+    path('blockchain/verificar/', views.verificar_integridad_blockchain, name='api_blockchain_verificar'),
 ]

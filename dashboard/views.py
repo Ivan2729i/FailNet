@@ -11,13 +11,16 @@ from pathlib import Path
 import pandas as pd
 from bson import ObjectId
 from django.conf import settings
-from django.http import FileResponse, JsonResponse
+from django.http import FileResponse, JsonResponse, HttpResponse
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
 from .models import Analisis
 from src.ml.sofi.servicio_sofi import analizar_sofi
 from src.ml.twin.servicio_twin import analizar_twin
+from src.blockchain.registro_blockchain import RegistroBlockchain
+import json
+
 
 
 # ==================================================
@@ -907,3 +910,405 @@ def descargar_csv_twin(request, analisis_id):
 # Fin de lógica twin
 # ==================================================
 
+
+
+# ==================================================
+# Inicio de lógica pnl
+# ==================================================
+
+MAX_PNL_CARACTERES = 8000
+MAX_PNL_JSON_BYTES = 40000
+CATEGORIAS_PNL = {'conectividad', 'interfaces', 'rendimiento', 'servicios'}
+
+
+def _registro_pnl(analisis_id):
+    if not ObjectId.is_valid(analisis_id):
+        return None
+    return Analisis.objects.filter(
+        pk=ObjectId(analisis_id),
+        tipo=Analisis.Tipo.PNL,
+        estado=Analisis.Estado.COMPLETADO,
+    ).first()
+
+
+def _hash_resultado_pnl(categoria, resumen, entidades):
+    contenido = json.dumps(
+        {'categoria': categoria, 'resumen': resumen, 'entidades': entidades},
+        ensure_ascii=False, sort_keys=True, separators=(',', ':'),
+    )
+    return hashlib.sha256(contenido.encode('utf-8')).hexdigest()
+
+
+def _respuesta_pnl(registro, incluir_texto=True):
+    datos = registro.resultados or {}
+    respuesta = {
+        'analisis_id': str(registro.pk),
+        'fecha_creacion': registro.fecha_creacion.isoformat(),
+        'categoria': datos.get('categoria', ''),
+        'resumen': registro.resumen_texto or '',
+        'entidades': datos.get('entidades', {}),
+        'blockchain': {
+            'registrado': registro.indice_blockchain is not None,
+            'indice': registro.indice_blockchain,
+            'hash': registro.hash_blockchain or None,
+        },
+    }
+    if incluir_texto:
+        respuesta['reporte_original'] = registro.texto_reporte or ''
+    else:
+        respuesta['vista_previa'] = (registro.texto_reporte or '')[:160]
+    return respuesta
+
+
+def _registrar_blockchain_pnl(registro, sha_resultado):
+    # Se conecta a la cadena original; nunca se crea otra independiente.
+    from src.blockchain.registro_blockchain import RegistroBlockchain
+
+    with BLOQUEO_BLOCKCHAIN:
+        cadena = RegistroBlockchain()
+        if not verificar_cadena_valida(cadena.verificar_cadena()):
+            raise RuntimeError('La cadena de integridad no superó la verificación.')
+        bloque = cadena.agregar_bloque(tipo='PNL', datos={
+            'origen': 'FailNet web',
+            'analisis_id': str(registro.pk),
+            'sha256_entrada': registro.sha256_archivo,
+            'sha256_resultado': sha_resultado,
+            'registros': 1,
+        })
+        if not isinstance(bloque, dict):
+            bloques = cadena.obtener_bloques()
+            bloque = bloques[-1] if bloques else None
+        if not isinstance(bloque, dict) or not bloque.get('hash') or bloque.get('indice') is None:
+            raise RuntimeError('No se pudo identificar el bloque PNL.')
+        registro.indice_blockchain = int(bloque['indice'])
+        registro.hash_blockchain = str(bloque['hash'])
+        registro.save(update_fields=[
+            'indice_blockchain', 'hash_blockchain', 'fecha_actualizacion',
+        ])
+
+
+@require_POST
+def analizar_texto_pnl(request):
+    # Mantiene CSRF habilitado; React envía X-CSRFToken.
+    if request.content_type != 'application/json':
+        return JsonResponse({'error': 'Envía un JSON con el campo texto.'}, status=415)
+    if len(request.body) > MAX_PNL_JSON_BYTES:
+        return JsonResponse({'error': 'El reporte excede el tamaño permitido.'}, status=413)
+    try:
+        cuerpo = json.loads(request.body)
+        if not isinstance(cuerpo, dict):
+            raise ValueError('El cuerpo debe ser un objeto JSON.')
+        texto = cuerpo.get('texto')
+        if not isinstance(texto, str):
+            raise ValueError('El campo texto debe ser una cadena.')
+        texto = texto.strip()
+        if len(texto) < 3:
+            raise ValueError('Escribe un reporte de al menos 3 caracteres.')
+        if len(texto) > MAX_PNL_CARACTERES:
+            raise ValueError(f'El reporte supera los {MAX_PNL_CARACTERES} caracteres.')
+        # Evita el costo excesivo de TF-IDF para miles de micro-oraciones.
+        if texto.count('.') + texto.count('!') + texto.count('?') > 200:
+            raise ValueError('El reporte contiene demasiadas oraciones.')
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError) as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+
+    try:
+        # Reutilizamos las tres funciones originales, desde un solo punto de entrada.
+        from src.nlp.analizar_reporte import analizar_reporte
+        resultado = analizar_reporte(texto)
+        categoria = resultado['categoria']
+        entidades = resultado['entidades']
+        resumen = resultado['resumen']
+        if categoria not in CATEGORIAS_PNL or not isinstance(resumen, str) or not isinstance(entidades, dict):
+            raise ValueError('El analizador devolvió un resultado inesperado.')
+
+        sha_entrada = hashlib.sha256(texto.encode('utf-8')).hexdigest()
+        sha_resultado = _hash_resultado_pnl(categoria, resumen, entidades)
+        registro = Analisis.objects.create(
+            tipo=Analisis.Tipo.PNL,
+            estado=Analisis.Estado.COMPLETADO,
+            nombre_archivo='Reporte de texto',
+            sha256_archivo=sha_entrada,
+            total_registros=1,
+            archivo_resultado='',
+            texto_reporte=texto,
+            resumen_texto=resumen,
+            resultados={
+                'categoria': categoria,
+                'entidades': entidades,
+                'sha256_resultado': sha_resultado,
+                'tipo_resumen': 'extractivo',
+            },
+        )
+    except Exception:
+        logger.exception('Error al analizar o guardar reporte PNL')
+        return JsonResponse({'error': 'No se pudo analizar o guardar el reporte PNL.'}, status=500)
+
+    advertencia = None
+    try:
+        _registrar_blockchain_pnl(registro, sha_resultado)
+    except Exception:
+        logger.exception('PNL guardado en Atlas, pero falló el registro blockchain')
+        advertencia = 'Análisis guardado; no se pudo registrar su integridad en blockchain.'
+
+    respuesta = _respuesta_pnl(registro)
+    if advertencia:
+        respuesta['advertencia'] = advertencia
+    return JsonResponse(respuesta, status=200)
+
+
+@require_GET
+def historial_pnl(request):
+    registros = Analisis.objects.filter(
+        tipo=Analisis.Tipo.PNL,
+        estado=Analisis.Estado.COMPLETADO,
+    ).order_by('-fecha_creacion')[:15]
+    return JsonResponse({'analisis': [_respuesta_pnl(r, incluir_texto=False) for r in registros]})
+
+
+@require_GET
+def detalle_pnl(request, analisis_id):
+    registro = _registro_pnl(analisis_id)
+    if registro is None:
+        return JsonResponse({'error': 'Análisis PNL no encontrado.'}, status=404)
+    return JsonResponse(_respuesta_pnl(registro))
+
+
+@require_GET
+def descargar_pnl(request, analisis_id):
+    registro = _registro_pnl(analisis_id)
+    if registro is None:
+        return JsonResponse({'error': 'Análisis PNL no encontrado.'}, status=404)
+    datos = registro.resultados or {}
+    texto = registro.texto_reporte or ''
+    categoria = datos.get('categoria', '')
+    resumen = registro.resumen_texto or ''
+    entidades = datos.get('entidades', {})
+    if (hashlib.sha256(texto.encode('utf-8')).hexdigest() != registro.sha256_archivo
+            or _hash_resultado_pnl(categoria, resumen, entidades) != datos.get('sha256_resultado')):
+        return JsonResponse({'error': 'El análisis no pasó la verificación SHA-256.'}, status=409)
+    documento = '\n'.join([
+        'FAILNET - REPORTE PNL',
+        f'Identificador: {registro.pk}',
+        f'Fecha: {registro.fecha_creacion.isoformat()}',
+        f'Categoría: {categoria}',
+        '', 'REPORTE ORIGINAL', texto,
+        '', 'RESUMEN EXTRACTIVO', resumen,
+        '', 'ENTIDADES DETECTADAS',
+        json.dumps(entidades, indent=2, ensure_ascii=False), '',
+    ])
+    respuesta = HttpResponse(documento, content_type='text/plain; charset=utf-8')
+    respuesta['Content-Disposition'] = f'attachment; filename="failnet_pnl_{analisis_id}.txt"'
+    return respuesta
+
+# ==================================================
+# Fin de lógica pnl
+# ==================================================
+
+
+
+# ==================================================
+# Inicio de lógica blockchain
+# ==================================================
+
+def _bloques_actuales():
+    ruta = Path(settings.BASE_DIR) / 'data' / 'blockchain' / 'cadena.json'
+    with ruta.open('r', encoding='utf-8-sig') as archivo:
+        bloques = json.load(archivo)
+    if not isinstance(bloques, list) or any(not isinstance(b, dict) for b in bloques):
+        raise ValueError('cadena.json debe contener una lista de bloques JSON.')
+    return None, bloques
+
+
+def _verificar_cadena_detallada(bloques):
+    incidencias = []
+    if not bloques:
+        return False, 'La cadena no contiene bloques.', [
+            {'indice': None, 'tipo': 'estructura', 'mensaje': 'No hay bloques registrados.'}
+        ]
+
+    for posicion, bloque in enumerate(bloques):
+        indice = bloque.get('indice', posicion)
+
+        if bloque.get('indice') != posicion:
+            incidencias.append({
+                'indice': indice, 'tipo': 'indice',
+                'mensaje': f'El bloque ocupa la posición {posicion}, pero tiene índice {indice}.',
+            })
+
+        if posicion == 0:
+            if bloque.get('hash_anterior') != '0' * 64:
+                incidencias.append({
+                    'indice': indice, 'tipo': 'enlace',
+                    'mensaje': 'El bloque génesis tiene una referencia anterior incorrecta.',
+                })
+        elif bloque.get('hash_anterior') != bloques[posicion - 1].get('hash'):
+            incidencias.append({
+                'indice': indice, 'tipo': 'enlace',
+                'mensaje': 'El hash anterior no coincide con el hash almacenado del bloque previo.',
+            })
+
+        try:
+            calculado = RegistroBlockchain.calcular_hash(bloque)
+        except Exception:
+            logger.exception('Error recalculando SHA-256 del bloque %s', indice)
+            incidencias.append({
+                'indice': indice, 'tipo': 'hash',
+                'mensaje': 'No se pudo recalcular el hash de este bloque.',
+            })
+            continue
+
+        if bloque.get('hash') != calculado:
+            incidencias.append({
+                'indice': indice, 'tipo': 'hash',
+                'mensaje': 'El hash almacenado no coincide con el contenido del bloque.',
+            })
+
+    if incidencias:
+        return False, f'Se detectaron {len(incidencias)} problemas de integridad en la cadena.', incidencias
+    return True, 'Todos los hashes y enlaces son correctos.', []
+
+
+def _datos_publicos_bloque(bloque):
+    datos = bloque.get('datos') if isinstance(bloque.get('datos'), dict) else {}
+    permitidas = ('origen', 'analisis_id', 'sha256_entrada', 'sha256_resultado', 'registros', 'demo_id')
+    return {k: datos[k] for k in permitidas if k in datos and isinstance(datos[k], (str, int, float, bool))}
+
+
+def _serializar_bloque(block):
+    return {
+        'indice': block.get('indice'),
+        'fecha': block.get('fecha'),
+        'tipo': str(block.get('tipo', 'desconocido')),
+        'hash': str(block.get('hash', '')),
+        'hash_anterior': str(block.get('hash_anterior', '')),
+        'datos': _datos_publicos_bloque(block),
+    }
+
+
+def _huella_archivo_blockchain(ruta):
+    huella = hashlib.sha256()
+    with ruta.open('rb') as archivo:
+        for fragmento in iter(lambda: archivo.read(1024 * 1024), b''):
+            huella.update(fragmento)
+    return huella.hexdigest()
+
+
+def _auditar_bloque_con_atlas(bloque, documentos):
+    """Verifica el contenido original vinculado al hash del bloque."""
+    datos = bloque.get('datos') or {}
+    analisis_id = datos.get('analisis_id')
+    indice = bloque.get('indice')
+    if analisis_id is None:
+        return {'indice': indice, 'estado': 'historico', 'mensaje': 'Bloque histórico sin identificador de análisis de Atlas.'}
+    if not isinstance(analisis_id, str) or not ObjectId.is_valid(analisis_id):
+        return {'indice': indice, 'estado': 'error', 'mensaje': 'Identificador de análisis malformado en el bloque.'}
+
+    registro = documentos.get(analisis_id)
+    if registro is None:
+        return {'indice': indice, 'estado': 'error', 'mensaje': 'El análisis vinculado ya no existe en Atlas.'}
+
+    if registro.indice_blockchain != indice or registro.hash_blockchain != bloque.get('hash'):
+        return {'indice': indice, 'estado': 'error', 'mensaje': 'La referencia de Atlas no coincide con el bloque.'}
+
+    if not datos.get('sha256_entrada') or registro.sha256_archivo != datos.get('sha256_entrada'):
+        return {'indice': indice, 'estado': 'error', 'mensaje': 'El hash de entrada no coincide con Atlas.'}
+
+    resultado = registro.resultados or {}
+    esperado = resultado.get('sha256_resultado')
+    if not esperado or esperado != datos.get('sha256_resultado'):
+        return {'indice': indice, 'estado': 'error', 'mensaje': 'El hash del resultado no coincide con Atlas.'}
+
+    if registro.tipo == Analisis.Tipo.PNL:
+        texto = registro.texto_reporte or ''
+        if hashlib.sha256(texto.encode('utf-8')).hexdigest() != registro.sha256_archivo:
+            return {'indice': indice, 'estado': 'error', 'mensaje': 'El reporte original PNL fue modificado.'}
+        contenido = json.dumps({
+            'categoria': resultado.get('categoria', ''),
+            'resumen': registro.resumen_texto or '',
+            'entidades': resultado.get('entidades', {}),
+        }, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+        actual = hashlib.sha256(contenido.encode('utf-8')).hexdigest()
+    elif registro.tipo in (Analisis.Tipo.SOFI, Analisis.Tipo.DIGITAL_TWIN):
+        raiz = Path(settings.MEDIA_ROOT).resolve()
+        ruta = (raiz / str(registro.archivo_resultado or '')).resolve()
+        if not ruta.is_relative_to(raiz) or ruta.suffix.lower() != '.csv' or not ruta.is_file():
+            return {'indice': indice, 'estado': 'error', 'mensaje': 'El CSV de resultados falta o su ruta es inválida.'}
+        actual = _huella_archivo_blockchain(ruta)
+    else:
+        return {'indice': indice, 'estado': 'error', 'mensaje': 'Tipo de análisis desconocido.'}
+
+    if actual != esperado:
+        return {'indice': indice, 'estado': 'error', 'mensaje': 'El resultado almacenado ya no coincide con SHA-256.'}
+
+    return {'indice': indice, 'estado': 'integro', 'mensaje': 'Coinciden blockchain, Atlas y resultado original.'}
+
+
+@require_GET
+def obtener_estado_blockchain(request):
+    try:
+        with BLOQUEO_BLOCKCHAIN:
+            _, bloques = _bloques_actuales()
+            bloques = [_serializar_bloque(b) for b in bloques]
+        return JsonResponse({
+            'total_bloques': len(bloques),
+            'ultimo_hash': bloques[-1]['hash'] if bloques else None,
+            'bloques': list(reversed(bloques)),
+            'estado': 'sin_verificar',
+        })
+    except Exception:
+        logger.exception('No fue posible consultar Blockchain')
+        return JsonResponse({'error': 'No se pudo leer la cadena de bloques.'}, status=500)
+
+
+@require_POST
+def verificar_integridad_blockchain(request):
+    try:
+        # La verificación no agrega, corrige ni elimina bloques.
+        with BLOQUEO_BLOCKCHAIN:
+            _, bloques = _bloques_actuales()
+            valida, mensaje, errores_cadena = _verificar_cadena_detallada(bloques)
+            instantanea = [dict(b) for b in bloques]
+
+        # No declarar íntegros los resultados si la cadena ya falló.
+        if not valida:
+            return JsonResponse({
+                'cadena': {'valida': False, 'mensaje': mensaje, 'errores': errores_cadena},
+                'auditoria': {'verificados': 0, 'errores': 0, 'historicos': 0, 'resultados': []},
+            })
+
+        ids = []
+        for bloque in instantanea:
+            datos = bloque.get('datos') or {}
+            analisis_id = datos.get('analisis_id') if isinstance(datos, dict) else None
+            if isinstance(analisis_id, str) and ObjectId.is_valid(analisis_id):
+                ids.append(ObjectId(analisis_id))
+        documentos = {str(r.pk): r for r in Analisis.objects.filter(pk__in=ids)} if ids else {}
+
+        auditoria = []
+        for bloque in instantanea:
+            try:
+                auditoria.append(_auditar_bloque_con_atlas(bloque, documentos))
+            except Exception:
+                logger.exception('Fallo auditando bloque %s', bloque.get('indice'))
+                auditoria.append({
+                    'indice': bloque.get('indice'), 'estado': 'error',
+                    'mensaje': 'Error al comprobar el análisis vinculado.',
+                })
+
+        return JsonResponse({
+            'cadena': {'valida': True, 'mensaje': mensaje, 'errores': []},
+            'auditoria': {
+                'verificados': sum(a['estado'] == 'integro' for a in auditoria),
+                'errores': sum(a['estado'] == 'error' for a in auditoria),
+                'historicos': sum(a['estado'] == 'historico' for a in auditoria),
+                'resultados': auditoria,
+            },
+        })
+    except Exception:
+        logger.exception('Error verificando blockchain')
+        return JsonResponse({'error': 'No se pudo verificar la cadena. Revisa el registro de Django.'}, status=500)
+
+# ==================================================
+# Fin de lógica blockchain
+# ==================================================
