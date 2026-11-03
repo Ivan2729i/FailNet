@@ -1,8 +1,11 @@
 import json
 from pathlib import Path
 from functools import lru_cache
-
 import joblib
+import re
+from ipaddress import IPv4Address, AddressValueError
+
+
 
 try:
     from .extraer_entidades import extraer_entidades
@@ -76,6 +79,19 @@ def analizar_reporte(texto):
 
     # Funcionalidad 2: entidades
     entidades = extraer_entidades(texto)
+
+    # Complementar detección IPv4, incluso al final de una oración.
+    patron_ipv4 = re.compile(r'(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?!\w|\.\d)')
+    ips = entidades.setdefault("direcciones_ip", [])
+
+    for coincidencia in patron_ipv4.finditer(texto):
+        try:
+            ip = str(IPv4Address(coincidencia.group()))
+        except AddressValueError:
+            continue
+
+        if ip not in ips:
+            ips.append(ip)
 
     # Funcionalidad 3: resumen extractivo
     resumen = resumir_reporte(texto, max_oraciones=2, max_palabras=50)

@@ -2,8 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, Routes, Route, Navigate, useLocation } from 'react-router'
 import SofiPage from './components/SofiPage.jsx'
 import TwinPage from './components/TwinPage.jsx'
+import PnlPage from './components/PnlPage.jsx'
+import BlockchainPage from './components/BlockchainPage.jsx'
 import './twin.css'
+import './pnl.css'
 import './sofi.css'
+import './blockchain.css'
+
 
 // Iconos SVG internos
 function Icono({ tipo, size = 18, className = '' }) {
@@ -39,14 +44,15 @@ const navegacion = [
 const herramientas = [
   { nombre: 'SOFI', icono: 'sofi', ruta: '/sofi', disponible: true },
   { nombre: 'Digital Twin', icono: 'twin', ruta: '/digital-twin', disponible: true },
-  { nombre: 'PNL', icono: 'pnl', ruta: '/pnl', disponible: false },
-  { nombre: 'Blockchain', icono: 'blockchain', ruta: '/blockchain', disponible: false },
+  { nombre: 'PNL', icono: 'pnl', ruta: '/pnl', disponible: true },
+  { nombre: 'Blockchain', icono: 'blockchain', ruta: '/blockchain', disponible: true },
 ]
 
 const modulos = [
-  { numero: '01', nombre: 'SOFI', tipo: 'Detección de fallas', descripcion: 'Clasificación de registros normales y eventos de falla.' },
-  { numero: '02', nombre: 'Digital Twin', tipo: 'Análisis de tráfico', descripcion: 'Clasificación de cinco niveles de intensidad de tráfico.' },
-  { numero: '03', nombre: 'PNL', tipo: 'Análisis de reportes', descripcion: 'Clasificación de texto, entidades y resumen técnico.' },
+  { numero: '01', nombre: 'SOFI', ruta: '/sofi', tipo: 'Detección de fallas', descripcion: 'Clasificación de registros normales y eventos de falla.' },
+  { numero: '02', nombre: 'Digital Twin', ruta: '/digital-twin', tipo: 'Análisis de tráfico', descripcion: 'Clasificación de cinco niveles de intensidad de tráfico.' },
+  { numero: '03', nombre: 'PNL', ruta: '/pnl', tipo: 'Análisis de reportes', descripcion: 'Clasificación de texto, entidades y resumen técnico.' },
+  { numero: '04', nombre: 'Blockchain', ruta: '/blockchain', tipo: 'Integridad de análisis', descripcion: 'Consulta de bloques y verificación de integridad mediante SHA-256.' },
 ]
 
 function BarraLateral({
@@ -473,11 +479,7 @@ function App() {
                   <div className="module-information"><h3>{modulo.nombre}</h3><p>{modulo.descripcion}</p></div>
                     <div className="module-extra">
                       <span className="module-type">{modulo.tipo}</span>
-                      {modulo.nombre === 'SOFI' || modulo.nombre === 'Digital Twin' ? (
-                        <Link to={modulo.nombre === 'SOFI' ? '/sofi' : '/digital-twin'} className="module-open-button">Abrir {modulo.nombre} ↗</Link>
-                      ) : (
-                        <span className="module-state">Interfaz en desarrollo</span>
-                      )}
+                      <Link to={modulo.ruta} className="module-open-button">Abrir {modulo.nombre} ↗</Link>
                     </div>
                 </div>
               ))}
@@ -487,8 +489,8 @@ function App() {
             </>} />
             <Route path="/sofi" element={<SofiPage onAnalisisGuardado={cargarDatos} />} />
             <Route path="/digital-twin" element={<TwinPage onAnalisisGuardado={cargarDatos} />} />
-            <Route path="/pnl" element={<PaginaEnDesarrollo titulo="Procesamiento de lenguaje natural" descripcion="Clasificación, entidades y resumen de reportes de red." />} />
-            <Route path="/blockchain" element={<PaginaEnDesarrollo titulo="Blockchain" descripcion="Verificación de integridad del historial de análisis." />} />
+            <Route path="/pnl" element={<PnlPage onAnalisisGuardado={cargarDatos} />} />
+            <Route path="/blockchain" element={<BlockchainPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <footer className="page-footer">
