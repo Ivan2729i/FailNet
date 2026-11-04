@@ -268,7 +268,7 @@ export default function TwinPage({ onAnalisisGuardado }) {
       </header>
 
       <form className="twin-card twin-upload" onSubmit={ejecutar}>
-        <div className="twin-card-head"><div><h2>Archivo de entrada</h2><p>Un CSV compatible con las 67 características del modelo. No se utiliza la etiqueta LABEL para predecir.</p></div><span className="twin-chip">Clasificación automática</span></div>
+        <div className="twin-card-head"><div><h2>Archivo de entrada</h2><p>CSV compatible con las características del modelo.</p></div><span className="twin-chip">Clasificación automática</span></div>
         <div className={`twin-drop ${arrastrando ? 'is-dragging' : ''}`} onDragOver={e => { e.preventDefault(); if (!procesando) setArrastrando(true) }}
           onDragLeave={e => { e.preventDefault(); if (!e.currentTarget.contains(e.relatedTarget)) setArrastrando(false) }}
           onDrop={e => { e.preventDefault(); setArrastrando(false); if (!procesando) elegirArchivo(e.dataTransfer.files[0]) }}>
@@ -319,7 +319,7 @@ export default function TwinPage({ onAnalisisGuardado }) {
       </section>}
 
       <section className="twin-card twin-history">
-        <div className="twin-card-head"><div><h3>Historial de Digital Twin</h3><p>Consulta análisis guardados en MongoDB Atlas</p></div></div>
+        <div className="twin-card-head"><div><h3>Historial de Digital Twin</h3><p>Explora y recupera los resultados de análisis anteriores.</p></div></div>
         {historial.length === 0 ? <p className="twin-empty">Todavía no hay análisis guardados.</p> : (
           <div className="twin-history-list">{historial.map(item => (
             <div className="twin-history-row" key={item.analisis_id}>

@@ -311,3 +311,25 @@ a.sidebar-link:hover { color: #fff; background: var(--forest-soft); transform: t
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* Fondo blanco compacto para el logo */
+.sidebar-brand-home .brand-logo-container {
+  width: 58px;
+  height: 58px;
+  background: #ffffff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Ampliar el escudo dentro del fondo blanco */
+.sidebar-brand-home .brand-logo {
+  width: 72px;
+  height: 72px;
+  max-width: none;
+  object-fit: contain;
+  flex-shrink: 0;
+}

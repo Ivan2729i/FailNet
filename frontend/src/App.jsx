@@ -83,13 +83,19 @@ function BarraLateral({
         onTouchStart={(evento) => iniciarGesto(evento, 'cerrar')}
       >
         <div className="sidebar-brand">
-          {/* El logo regresa a inicio y recarga, como solicitaste. */}
+          {/* El logo regresa a inicio y recarga. */}
           <a href="/" className="sidebar-brand-home" aria-label="Ir al inicio de FailNet">
-            <div className="brand-icon" aria-hidden="true">F<span>.</span></div>
-            <div className="brand-text">
-              <strong>FAILNET</strong>
-              <small>NETWORK ANALYSIS</small>
-            </div>
+              <div className="brand-logo-container" aria-hidden="true">
+                  <img
+                    src="/images/failnet-logo.png"
+                    alt=""
+                    className="brand-logo"
+                  />
+              </div>
+              <div className="brand-text">
+                <strong>FAILNET</strong>
+                <small>NETWORK ANALYSIS</small>
+              </div>
           </a>
           <button
             type="button"
@@ -431,8 +437,8 @@ function App() {
 
           <section id="resumen" className="intro-section">
             <div className="eyebrow"><span className="eyebrow-line" />CONSOLA DE ANÁLISIS</div>
-            <h1>Información de red,<span> sin ruido.</span></h1>
-            <p>Una vista centralizada de los análisis realizados en FailNet. Explora los resultados de Machine Learning, procesamiento de lenguaje natural y los registros de integridad.</p>
+            <h1>Análisis inteligente,<span> decisiones basadas en datos.</span></h1>
+            <p>FailNet centraliza la detección de fallas, el análisis de tráfico y la interpretación de reportes mediante inteligencia artificial, incorporando mecanismos de trazabilidad e integridad de los resultados.</p>
           </section>
 
           {error && (
