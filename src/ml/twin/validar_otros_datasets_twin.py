@@ -3,13 +3,12 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-
 from sklearn.metrics import (
     accuracy_score,
-    f1_score,
-    recall_score,
     classification_report,
     confusion_matrix,
+    f1_score,
+    recall_score,
 )
 
 # ==========================================
@@ -56,20 +55,15 @@ print("No se realizará ningún entrenamiento.")
 archivos = []
 
 for prefijo in ["dataset_02", "dataset_03"]:
-
-    coincidencias = sorted(
-        p for p in DATA.rglob("*.csv") if p.name.lower().startswith(prefijo)
-    )
+    coincidencias = sorted(p for p in DATA.rglob("*.csv") if p.name.lower().startswith(prefijo))
 
     if coincidencias:
         archivos.extend(coincidencias)
     else:
-        print(f"\nNo se encontró un archivo " f"que comience con {prefijo}")
+        print(f"\nNo se encontró un archivo que comience con {prefijo}")
 
 if not archivos:
-    raise FileNotFoundError(
-        "Coloca los CSV de los datasets 02 " "y 03 en data/raw/digital_twin/"
-    )
+    raise FileNotFoundError("Coloca los CSV de los datasets 02 y 03 en data/raw/digital_twin/")
 
 # ==========================================
 # 4. EVALUACIÓN SIN REENTRENAMIENTO
@@ -78,7 +72,6 @@ if not archivos:
 resultados = []
 
 for archivo in archivos:
-
     print("\n" + "=" * 65)
     print("DATASET:", archivo.name)
     print("=" * 65)
@@ -130,17 +123,13 @@ for archivo in archivos:
 
     macro_f1 = f1_score(y, pred, average="macro", labels=CLASES, zero_division=0)
 
-    macro_recall = recall_score(
-        y, pred, average="macro", labels=CLASES, zero_division=0
-    )
+    macro_recall = recall_score(y, pred, average="macro", labels=CLASES, zero_division=0)
 
     # Métrica adicional, considerando
     # únicamente las clases reales presentes.
     clases_presentes = sorted(y.unique())
 
-    f1_presentes = f1_score(
-        y, pred, average="macro", labels=clases_presentes, zero_division=0
-    )
+    f1_presentes = f1_score(y, pred, average="macro", labels=clases_presentes, zero_division=0)
 
     errores = int((y.to_numpy() != pred).sum())
 
@@ -148,7 +137,7 @@ for archivo in archivos:
     print(f"Accuracy: {acc:.4f}")
     print(f"Macro-F1 (5 clases): {macro_f1:.4f}")
     print(f"Macro-Recall (5 clases): {macro_recall:.4f}")
-    print(f"Macro-F1 (clases presentes): " f"{f1_presentes:.4f}")
+    print(f"Macro-F1 (clases presentes): {f1_presentes:.4f}")
 
     print("Errores:", errores)
 
@@ -176,7 +165,6 @@ for archivo in archivos:
 # ==========================================
 
 if resultados:
-
     tabla = pd.DataFrame(resultados)
 
     print("\n" + "=" * 65)

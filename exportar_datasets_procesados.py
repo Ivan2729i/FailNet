@@ -20,9 +20,7 @@ def localizar(base: Path, patron: str) -> Path:
 def guardar(df: pd.DataFrame, ruta: Path) -> None:
     ruta.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(ruta, index=False, encoding="utf-8-sig")
-    print(
-        f"Generado: {ruta.relative_to(ROOT)} | filas={len(df):,} | columnas={len(df.columns)}"
-    )
+    print(f"Generado: {ruta.relative_to(ROOT)} | filas={len(df):,} | columnas={len(df.columns)}")
 
 
 def exportar_sofi() -> None:
@@ -48,9 +46,7 @@ def exportar_sofi() -> None:
     if len(unido) != 12970:
         raise ValueError(f"SOFI: filas inesperadas: {len(unido)}")
     if len(columnas) != 64:
-        raise ValueError(
-            f"SOFI: el modelo tiene {len(columnas)} columnas, se esperaban 64"
-        )
+        raise ValueError(f"SOFI: el modelo tiene {len(columnas)} columnas, se esperaban 64")
 
     X = unido[columnas].apply(pd.to_numeric, errors="raise")
     X = X.mask(X < 0)  # Misma regla de limpieza del entrenamiento final
@@ -85,9 +81,7 @@ def exportar_twin() -> None:
     if len(df) != 227838:
         raise ValueError(f"Twin: filas inesperadas: {len(df)}")
     if len(columnas) != 67:
-        raise ValueError(
-            f"Twin: el modelo tiene {len(columnas)} columnas, se esperaban 67"
-        )
+        raise ValueError(f"Twin: el modelo tiene {len(columnas)} columnas, se esperaban 67")
 
     X = df[columnas].apply(pd.to_numeric, errors="coerce")
     X = X.replace([np.inf, -np.inf], np.nan)

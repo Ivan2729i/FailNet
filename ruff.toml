@@ -1,0 +1,10 @@
+# Configuración de Ruff para FailNet
+target-version = "py313"
+line-length = 100
+
+# Las migraciones son generadas por Django.
+extend-exclude = ["dashboard/migrations"]
+
+[lint.per-file-ignores]
+# Los modelos Django utilizan declaraciones de clase especiales.
+"dashboard/models.py" = ["RUF012"]

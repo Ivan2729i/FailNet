@@ -3,16 +3,15 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import (
-    confusion_matrix,
+    average_precision_score,
     classification_report,
+    confusion_matrix,
+    f1_score,
     precision_score,
     recall_score,
-    f1_score,
-    average_precision_score,
 )
 
 # ==================================================
@@ -52,9 +51,7 @@ def cargar_switch(nombre):
 sw1 = cargar_switch("SOFI CoreSwitch-I.csv")
 sw2 = cargar_switch("SOFI CoreSwitch-II.csv")
 
-df = sw1.merge(
-    sw2, on="timestamp", how="inner", suffixes=("_I", "_II"), validate="one_to_one"
-)
+df = sw1.merge(sw2, on="timestamp", how="inner", suffixes=("_I", "_II"), validate="one_to_one")
 
 df = df.sort_values("timestamp").reset_index(drop=True)
 
@@ -109,7 +106,7 @@ print("Normales:", int((y_test == 0).sum()))
 print("Fallas:", int((y_test == 1).sum()))
 
 if y.iloc[corte - 1] == 1 and y.iloc[corte] == 1:
-    print("\nADVERTENCIA: el corte temporal divide " "un bloque consecutivo de falla.")
+    print("\nADVERTENCIA: el corte temporal divide un bloque consecutivo de falla.")
 
 # ==================================================
 # 4. PREPROCESAMIENTO

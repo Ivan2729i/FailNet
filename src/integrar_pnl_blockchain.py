@@ -1,7 +1,7 @@
 import json
 
-from nlp.analizar_reporte import analizar_reporte
 from blockchain.registro_blockchain import RegistroBlockchain
+from nlp.analizar_reporte import analizar_reporte
 
 # ==================================================
 # NETINSIGHT AI - INTEGRACIÓN PNL + BLOCKCHAIN
@@ -43,7 +43,6 @@ def main():
     print("Presiona ENTER sin escribir nada para salir.")
 
     while True:
-
         try:
             texto = input("\nReporte > ").strip()
 

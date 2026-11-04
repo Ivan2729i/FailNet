@@ -2,7 +2,6 @@ import re
 import unicodedata
 
 import numpy as np
-
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -55,9 +54,7 @@ def normalizar(texto):
 
     texto = unicodedata.normalize("NFD", texto.lower())
 
-    texto = "".join(
-        caracter for caracter in texto if unicodedata.category(caracter) != "Mn"
-    )
+    texto = "".join(caracter for caracter in texto if unicodedata.category(caracter) != "Mn")
 
     return texto
 
@@ -142,9 +139,7 @@ def resumir_reporte(texto, max_oraciones=2, max_palabras=60):
     # A. TF-IDF DE LAS ORACIONES
     # ------------------------------------------
 
-    vectorizador = TfidfVectorizer(
-        lowercase=True, strip_accents="unicode", ngram_range=(1, 2)
-    )
+    vectorizador = TfidfVectorizer(lowercase=True, strip_accents="unicode", ngram_range=(1, 2))
 
     try:
         matriz = vectorizador.fit_transform(oraciones)
@@ -164,7 +159,6 @@ def resumir_reporte(texto, max_oraciones=2, max_palabras=60):
     puntuaciones = []
 
     for indice, oracion in enumerate(oraciones):
-
         puntuacion = float(relevancia[indice]) + calcular_bono(oracion)
 
         puntuaciones.append((indice, puntuacion, oracion))
@@ -180,17 +174,12 @@ def resumir_reporte(texto, max_oraciones=2, max_palabras=60):
     palabras_usadas = 0
 
     for indice, _, oracion in candidatos:
-
         cantidad = len(oracion.split())
 
         # Seleccionar la mejor oración aunque
         # supere el límite: no cortamos frases
         # porque podrían perder su significado.
-        if not seleccionadas:
-            seleccionadas.append((indice, oracion))
-            palabras_usadas += cantidad
-
-        elif palabras_usadas + cantidad <= max_palabras:
+        if not seleccionadas or palabras_usadas + cantidad <= max_palabras:
             seleccionadas.append((indice, oracion))
             palabras_usadas += cantidad
 
@@ -208,7 +197,6 @@ def resumir_reporte(texto, max_oraciones=2, max_palabras=60):
 # ==================================================
 
 if __name__ == "__main__":
-
     reportes = [
         (
             "Se detectó pérdida de conectividad "
@@ -259,7 +247,6 @@ if __name__ == "__main__":
     print("=" * 65)
 
     for numero, reporte in enumerate(reportes, start=1):
-
         print("\n" + "=" * 65)
         print(f"PRUEBA {numero}")
         print("=" * 65)

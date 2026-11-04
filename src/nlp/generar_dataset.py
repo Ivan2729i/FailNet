@@ -1,5 +1,5 @@
-from pathlib import Path
 import csv
+from pathlib import Path
 
 # ==========================================
 # CONFIGURACIÓN
@@ -92,7 +92,6 @@ reportes = {
 ruta = DATA / "reportes_red.csv"
 
 with ruta.open("w", newline="", encoding="utf-8-sig") as archivo:
-
     writer = csv.writer(archivo)
 
     writer.writerow(["id", "texto", "categoria", "origen"])
@@ -100,9 +99,7 @@ with ruta.open("w", newline="", encoding="utf-8-sig") as archivo:
     identificador = 1
 
     for categoria, textos in reportes.items():
-
         for texto in textos:
-
             writer.writerow([identificador, texto, categoria, "simulado"])
 
             identificador += 1

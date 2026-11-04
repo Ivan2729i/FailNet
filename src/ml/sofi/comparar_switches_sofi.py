@@ -2,11 +2,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
-from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import TimeSeriesSplit
 
 # ==================================================
 # 1. CONFIGURACIÓN
@@ -73,9 +72,7 @@ if y.isna().any():
 
 y = y.astype(int)
 
-columnas = [
-    col for col in switch1.columns if col not in ["timestamp", "class", "range"]
-]
+columnas = [col for col in switch1.columns if col not in ["timestamp", "class", "range"]]
 
 columnas_I = [f"{col}_I" for col in columnas]
 columnas_II = [f"{col}_II" for col in columnas]
@@ -99,15 +96,12 @@ cv = TimeSeriesSplit(n_splits=3, gap=24)
 episodios_falla = y_dev.eq(1)
 
 episodios = (
-    (episodios_falla & ~episodios_falla.shift(fill_value=False))
-    .cumsum()
-    .where(episodios_falla, 0)
+    (episodios_falla & ~episodios_falla.shift(fill_value=False)).cumsum().where(episodios_falla, 0)
 )
 
 splits = []
 
 for train_idx, val_idx in cv.split(y_dev):
-
     ids_train = set(episodios.iloc[train_idx]) - {0}
 
     ids_val = set(episodios.iloc[val_idx]) - {0}
@@ -128,7 +122,6 @@ for train_idx, val_idx in cv.split(y_dev):
 resultados = []
 
 for nombre, X in datasets.items():
-
     print("\n" + "=" * 65)
     print("MODELO:", nombre)
     print("=" * 65)
@@ -138,7 +131,6 @@ for nombre, X in datasets.items():
     totales = np.zeros(4, dtype=int)
 
     for numero, (train_idx, val_idx) in enumerate(splits, 1):
-
         x_train = X_dev.iloc[train_idx].copy()
         x_val = X_dev.iloc[val_idx].copy()
 

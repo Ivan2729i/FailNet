@@ -2,10 +2,9 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import TimeSeriesSplit
 
 # ==================================================
 # 1. CARGAR DATOS
@@ -49,7 +48,6 @@ print("DIAGNÓSTICO DEL MODELO SOFI")
 print("=" * 60)
 
 for numero, (train_idx, val_idx) in enumerate(cv.split(X_dev), 1):
-
     # Analizar las ventanas 2 y 3
     if numero == 1:
         continue

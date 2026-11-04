@@ -2,12 +2,11 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from sklearn.base import clone
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.tree import DecisionTreeClassifier
 
 # ==================================================
 # 1. CONFIGURACIÓN
@@ -74,7 +73,6 @@ splits_validos = []
 print("\nVENTANAS DE VALIDACIÓN")
 
 for i, (train_idx, val_idx) in enumerate(splits, 1):
-
     # Evitar compartir un episodio de falla
     ids_train = set(episodios.iloc[train_idx]) - {0}
 
@@ -90,15 +88,9 @@ for i, (train_idx, val_idx) in enumerate(splits, 1):
     n_fallas_train = int(y_dev.iloc[train_idx].sum())
     n_fallas_val = int(y_dev.iloc[val_idx].sum())
 
-    print(
-        f"\nVentana {i}: "
-        f"entrenamiento={len(train_idx)}, "
-        f"validación={len(val_idx)}"
-    )
+    print(f"\nVentana {i}: entrenamiento={len(train_idx)}, validación={len(val_idx)}")
 
-    print(
-        f"Fallas entrenamiento={n_fallas_train}, " f"fallas validación={n_fallas_val}"
-    )
+    print(f"Fallas entrenamiento={n_fallas_train}, fallas validación={n_fallas_val}")
 
     if n_fallas_train == 0:
         print("Omitida: no tiene fallas para aprender")
@@ -108,8 +100,7 @@ for i, (train_idx, val_idx) in enumerate(splits, 1):
 
 if len(splits_validos) < 2:
     raise ValueError(
-        "Hay menos de dos ventanas utilizables. "
-        "Necesitamos revisar la distribución temporal."
+        "Hay menos de dos ventanas utilizables. Necesitamos revisar la distribución temporal."
     )
 
 # ==================================================
@@ -193,7 +184,6 @@ umbrales = [
 resultados = []
 
 for nombre, configuracion in modelos.items():
-
     print("\n" + "=" * 65)
     print("EVALUANDO:", nombre)
     print("=" * 65)
@@ -202,7 +192,6 @@ for nombre, configuracion in modelos.items():
     probabilidades = np.full(len(X_dev), np.nan)
 
     for i, (train_idx, val_idx) in enumerate(splits_validos, 1):
-
         modelo = clone(configuracion)
 
         modelo.fit(X_dev.iloc[train_idx], y_dev.iloc[train_idx])
@@ -225,9 +214,7 @@ for nombre, configuracion in modelos.items():
 
             y_real_fold = y_dev.iloc[val_idx].to_numpy()
 
-            tn, fp, fn, tp = confusion_matrix(
-                y_real_fold, pred_clases, labels=[0, 1]
-            ).ravel()
+            tn, fp, fn, tp = confusion_matrix(y_real_fold, pred_clases, labels=[0, 1]).ravel()
 
             precision_fold = tp / (tp + fp) if tp + fp > 0 else 0
 
@@ -251,10 +238,7 @@ for nombre, configuracion in modelos.items():
                 print(f"  Recall: {recall_fold:.3f}")
                 print(f"  F1-score: {f1_fold:.3f}")
             else:
-                print(
-                    "  Recall y F1: no evaluables "
-                    "(sin fallas reales en esta ventana)"
-                )
+                print("  Recall y F1: no evaluables (sin fallas reales en esta ventana)")
 
     # Utilizar solamente predicciones de validación
     mascara = ~np.isnan(probabilidades)
@@ -263,7 +247,6 @@ for nombre, configuracion in modelos.items():
     probs = probabilidades[mascara]
 
     for umbral in umbrales:
-
         pred = (probs >= umbral).astype(int)
 
         tn, fp, fn, tp = confusion_matrix(y_real, pred, labels=[0, 1]).ravel()
@@ -272,11 +255,7 @@ for nombre, configuracion in modelos.items():
 
         recall = tp / (tp + fn) if tp + fn > 0 else 0
 
-        f1 = (
-            2 * precision * recall / (precision + recall)
-            if precision + recall > 0
-            else 0
-        )
+        f1 = 2 * precision * recall / (precision + recall) if precision + recall > 0 else 0
 
         tasa_falsas_alarmas = fp / (fp + tn) if fp + tn > 0 else 0
 
@@ -301,9 +280,9 @@ for nombre, configuracion in modelos.items():
 
 tabla = pd.DataFrame(resultados)
 
-tabla = tabla.sort_values(
-    by=["f1", "recall", "fp"], ascending=[False, False, True]
-).reset_index(drop=True)
+tabla = tabla.sort_values(by=["f1", "recall", "fp"], ascending=[False, False, True]).reset_index(
+    drop=True
+)
 
 ruta = REPORTS / "sofi_optimizacion_cv.csv"
 
@@ -315,9 +294,7 @@ print("=" * 65)
 
 columnas = ["modelo", "umbral", "precision", "recall", "f1", "tp", "fp", "fn"]
 
-print(
-    tabla[columnas].head(15).to_string(index=False, float_format=lambda x: f"{x:.3f}")
-)
+print(tabla[columnas].head(15).to_string(index=False, float_format=lambda x: f"{x:.3f}"))
 
 # ==================================================
 # 6. MEJOR CONFIGURACIÓN PROVISIONAL
@@ -341,4 +318,4 @@ print("Falsas alarmas:", int(mejor["fp"]))
 
 print("\nResultados guardados en:", ruta)
 
-print("\nIMPORTANTE: " "El conjunto de prueba final sigue reservado.")
+print("\nIMPORTANTE: El conjunto de prueba final sigue reservado.")

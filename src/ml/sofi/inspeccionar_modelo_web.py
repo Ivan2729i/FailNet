@@ -1,9 +1,7 @@
-
 from pathlib import Path
 
 import joblib
 import pandas as pd
-
 
 # ==========================================
 # INSPECCIÓN DEL MODELO SOFI
@@ -37,28 +35,17 @@ def main():
     print("Tipo:", type(artefacto).__name__)
 
     if isinstance(artefacto, dict):
-
         print("\nCONTENIDO DEL MODELO")
 
         for clave, valor in artefacto.items():
-
-            print(
-                f"{clave}: {type(valor).__name__}"
-            )
+            print(f"{clave}: {type(valor).__name__}")
 
             if isinstance(valor, (list, tuple)):
-                print(
-                    "  Elementos:", len(valor)
-                )
+                print("  Elementos:", len(valor))
 
-                print(
-                    "  Primeros valores:",
-                    valor[:5]
-                )
+                print("  Primeros valores:", valor[:5])
 
-            elif isinstance(
-                valor, (int, float, str)
-            ):
+            elif isinstance(valor, (int, float, str)):
                 print("  Valor:", valor)
 
     # ======================================
@@ -71,7 +58,6 @@ def main():
     ]
 
     for ruta in archivos:
-
         print("\n" + "=" * 65)
         print("DATASET:", ruta.name)
         print("=" * 65)
@@ -82,10 +68,7 @@ def main():
 
         # Leer solo el encabezado y unas
         # pocas filas, sin cargar todo el CSV.
-        df = pd.read_csv(
-            ruta,
-            nrows=5
-        )
+        df = pd.read_csv(ruta, nrows=5)
 
         print("Columnas:", len(df.columns))
 
@@ -96,9 +79,7 @@ def main():
 
         print("\nPrimeras 2 filas")
 
-        print(
-            df.head(2).to_string(index=False)
-        )
+        print(df.head(2).to_string(index=False))
 
     print("\n" + "=" * 65)
     print("INSPECCIÓN TERMINADA")

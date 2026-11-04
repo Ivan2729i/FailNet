@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -47,7 +48,6 @@ print("DISTRIBUCIÓN TEMPORAL DE CLASES - DIGITAL TWIN")
 print("=" * 85)
 
 for numero, bloque in enumerate(bloques, 1):
-
     inicio = bloque[0]
     fin = bloque[-1]
 

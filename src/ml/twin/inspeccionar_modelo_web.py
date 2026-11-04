@@ -1,8 +1,7 @@
-
 from pathlib import Path
+
 import joblib
 import pandas as pd
-
 
 # ==================================================
 # FAILNET - INSPECCIÓN DEL MODELO DIGITAL TWIN
@@ -77,9 +76,7 @@ def main():
 
     print("\nPRIMERAS 3 FILAS DE METADATOS")
     metadatos = [
-        columna for columna in
-        ["Timestamp", "Host Name", "LABEL"]
-        if columna in df.columns
+        columna for columna in ["Timestamp", "Host Name", "LABEL"] if columna in df.columns
     ]
 
     if metadatos:

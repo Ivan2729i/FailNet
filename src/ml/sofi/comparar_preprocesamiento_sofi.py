@@ -2,11 +2,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
-from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import TimeSeriesSplit
 
 # ==================================================
 # 1. CONFIGURACIÓN
@@ -59,7 +58,6 @@ def preparar_datos(x_train, x_val, estrategia):
         return (train.to_numpy(dtype=float), val.to_numpy(dtype=float), train.shape[1])
 
     if estrategia == "pocas_ausencias":
-
         # Selección basada solo en entrenamiento
         porcentaje_negativos = (train < 0).mean()
 
@@ -102,7 +100,6 @@ episodios = (fallas & ~fallas.shift(fill_value=False)).cumsum().where(fallas, 0)
 splits = []
 
 for train_idx, val_idx in cv.split(X_dev):
-
     ids_train = set(episodios.iloc[train_idx]) - {0}
 
     ids_val = set(episodios.iloc[val_idx]) - {0}
@@ -131,13 +128,11 @@ print("Registros de desarrollo:", len(X_dev))
 print("Registros de prueba reservados:", len(X) - corte)
 
 for estrategia in ESTRATEGIAS:
-
     print("\n" + "=" * 65)
     print("ESTRATEGIA:", estrategia.upper())
     print("=" * 65)
 
     for numero, (train_idx, val_idx) in enumerate(splits, 1):
-
         x_train = X_dev.iloc[train_idx]
         x_val = X_dev.iloc[val_idx]
 
@@ -164,11 +159,7 @@ for estrategia in ESTRATEGIAS:
 
         recall = tp / (tp + fn) if tp + fn > 0 else 0
 
-        f1 = (
-            2 * precision * recall / (precision + recall)
-            if precision + recall > 0
-            else 0
-        )
+        f1 = 2 * precision * recall / (precision + recall) if precision + recall > 0 else 0
 
         resultados.append(
             {
@@ -208,13 +199,11 @@ tabla = pd.DataFrame(resultados)
 
 resumen = tabla.groupby("estrategia", as_index=False)[["tp", "fp", "fn", "tn"]].sum()
 
-resumen["precision"] = (
-    resumen["tp"] / (resumen["tp"] + resumen["fp"]).replace(0, np.nan)
-).fillna(0)
+resumen["precision"] = (resumen["tp"] / (resumen["tp"] + resumen["fp"]).replace(0, np.nan)).fillna(
+    0
+)
 
-resumen["recall"] = (
-    resumen["tp"] / (resumen["tp"] + resumen["fn"]).replace(0, np.nan)
-).fillna(0)
+resumen["recall"] = (resumen["tp"] / (resumen["tp"] + resumen["fn"]).replace(0, np.nan)).fillna(0)
 
 resumen["f1"] = (
     2
@@ -231,13 +220,9 @@ print("=" * 65)
 
 print(resumen.to_string(index=False, float_format=lambda x: f"{x:.3f}"))
 
-tabla.to_csv(
-    REPORTS / "sofi_preprocesamiento_ventanas.csv", index=False, encoding="utf-8-sig"
-)
+tabla.to_csv(REPORTS / "sofi_preprocesamiento_ventanas.csv", index=False, encoding="utf-8-sig")
 
-resumen.to_csv(
-    REPORTS / "sofi_preprocesamiento_resumen.csv", index=False, encoding="utf-8-sig"
-)
+resumen.to_csv(REPORTS / "sofi_preprocesamiento_resumen.csv", index=False, encoding="utf-8-sig")
 
 print("\nExperimento finalizado.")
 print("La prueba final permanece reservada.")

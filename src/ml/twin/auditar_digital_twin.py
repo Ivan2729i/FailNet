@@ -132,7 +132,6 @@ for nombre, valores in [
     ("Máximo ancho de banda", max_bw),
     ("Suma de anchos de banda", sum_bw),
 ]:
-
     pred = clasificar_por_rango(valores)
 
     coincidencia = (pred == dev["LABEL"].to_numpy()).mean()
@@ -141,15 +140,11 @@ for nombre, valores in [
     print("REGLA:", nombre)
     print("=" * 65)
 
-    print(f"Coincidencia con LABEL: " f"{coincidencia * 100:.2f}%")
+    print(f"Coincidencia con LABEL: {coincidencia * 100:.2f}%")
 
     print("\nETIQUETA REAL VS REGLA")
 
-    print(
-        pd.crosstab(
-            dev["LABEL"], pred, rownames=["Real"], colnames=["Regla"]
-        ).to_string()
-    )
+    print(pd.crosstab(dev["LABEL"], pred, rownames=["Real"], colnames=["Regla"]).to_string())
 
 # ==========================================
 # 8. COLUMNAS CONSTANTES

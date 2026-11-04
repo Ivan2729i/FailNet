@@ -1,9 +1,7 @@
-
 from django.db import models
 
 
 class Analisis(models.Model):
-
     # ==========================================
     # TIPOS DE ANÁLISIS
     # ==========================================
@@ -27,97 +25,53 @@ class Analisis(models.Model):
     # INFORMACIÓN GENERAL
     # ==========================================
 
-    tipo = models.CharField(
-        max_length=20,
-        choices=Tipo.choices
-    )
+    tipo = models.CharField(max_length=20, choices=Tipo.choices)
 
-    estado = models.CharField(
-        max_length=20,
-        choices=Estado.choices,
-        default=Estado.PENDIENTE
-    )
+    estado = models.CharField(max_length=20, choices=Estado.choices, default=Estado.PENDIENTE)
 
-    fecha_creacion = models.DateTimeField(
-        auto_now_add=True
-    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
 
-    fecha_actualizacion = models.DateTimeField(
-        auto_now=True
-    )
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     # ==========================================
     # ARCHIVOS CSV
     # ==========================================
 
-    nombre_archivo = models.CharField(
-        max_length=255,
-        blank=True,
-        default=""
-    )
+    nombre_archivo = models.CharField(max_length=255, blank=True, default="")
 
-    sha256_archivo = models.CharField(
-        max_length=64,
-        blank=True,
-        default=""
-    )
+    sha256_archivo = models.CharField(max_length=64, blank=True, default="")
 
-    total_registros = models.PositiveIntegerField(
-        default=0
-    )
+    total_registros = models.PositiveIntegerField(default=0)
 
-    archivo_resultado = models.CharField(
-        max_length=500,
-        blank=True,
-        default=""
-    )
+    archivo_resultado = models.CharField(max_length=500, blank=True, default="")
 
     # ==========================================
     # RESULTADOS DEL ANÁLISIS
     # ==========================================
 
-    resultados = models.JSONField(
-        default=dict,
-        blank=True
-    )
+    resultados = models.JSONField(default=dict, blank=True)
 
     # ==========================================
     # INFORMACIÓN DE PNL
     # ==========================================
 
-    texto_reporte = models.TextField(
-        blank=True,
-        default=""
-    )
+    texto_reporte = models.TextField(blank=True, default="")
 
-    resumen_texto = models.TextField(
-        blank=True,
-        default=""
-    )
+    resumen_texto = models.TextField(blank=True, default="")
 
     # ==========================================
     # BLOCKCHAIN
     # ==========================================
 
-    indice_blockchain = models.PositiveIntegerField(
-        null=True,
-        blank=True
-    )
+    indice_blockchain = models.PositiveIntegerField(null=True, blank=True)
 
-    hash_blockchain = models.CharField(
-        max_length=64,
-        blank=True,
-        default=""
-    )
+    hash_blockchain = models.CharField(max_length=64, blank=True, default="")
 
     # ==========================================
     # CONTROL DE ERRORES
     # ==========================================
 
-    mensaje_error = models.TextField(
-        blank=True,
-        default=""
-    )
+    mensaje_error = models.TextField(blank=True, default="")
 
     # ==========================================
     # CONFIGURACIÓN DEL MODELO
@@ -131,7 +85,4 @@ class Analisis(models.Model):
         verbose_name_plural = "Análisis"
 
     def __str__(self):
-        return (
-            f"{self.get_tipo_display()} "
-            f"- {self.get_estado_display()}"
-        )
+        return f"{self.get_tipo_display()} - {self.get_estado_display()}"
