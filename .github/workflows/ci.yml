@@ -48,8 +48,19 @@ jobs:
       - name: Verificar sintaxis de Python
         run: python -m compileall -q dashboard failnet_web src
 
-      - name: Verificar configuración de Django (sin conexión a Atlas)
-        run: python manage.py check
+      - name: Verificar configuración de Django
+        env:
+          DJANGO_SECRET_KEY: ci-only-not-for-production
+          DJANGO_DEBUG: 'False'
+          DJANGO_ALLOWED_HOSTS: 127.0.0.1,localhost
+          DJANGO_CSRF_TRUSTED_ORIGINS: http://127.0.0.1:5173
+          MONGODB_HOST: 'mongodb+srv://ci.example.com'
+          MONGODB_USER: ci
+          MONGODB_PASSWORD: ci
+          MONGODB_DB_NAME: failnet_ci
+        run: |
+          python -c "import os; h=os.getenv('MONGODB_HOST', ''); print('MONGODB_HOST configurado:', bool(h)); print('Formato valido:', h.startswith('mongodb+srv://'))"
+          python manage.py check
 
       # Los tests que utilicen MongoDB Atlas o modelos .joblib requieren
       # mocks/fixtures específicos. No se ejecutan contra producción.
