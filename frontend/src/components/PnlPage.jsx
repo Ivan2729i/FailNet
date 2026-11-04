@@ -137,8 +137,8 @@ export default function PnlPage({ onAnalisisGuardado }) {
 
       <form className="pnl-card" onSubmit={analizar}>
         <div className="pnl-card-head">
-          <div><h2>Reporte de entrada</h2><p>Escribe o pega la descripción de un evento de red.</p></div>
-          <span className="pnl-chip">Clasificación automática</span>
+          <div><h2>Reporte de entrada</h2><p>Describe un problema de red o pega un reporte técnico para analizarlo.</p></div>
+          <span className="pnl-chip">Análisis inteligente de texto</span>
         </div>
         <label className="pnl-label" htmlFor="pnl-reporte">Descripción del incidente</label>
         <textarea id="pnl-reporte" className="pnl-textarea" rows={9}
@@ -194,7 +194,7 @@ export default function PnlPage({ onAnalisisGuardado }) {
       )}
 
       <section className="pnl-card pnl-history">
-        <div className="pnl-card-head"><div><h3>Historial de PNL</h3><p>Recupera reportes anteriores sin volver a procesarlos.</p></div></div>
+        <div className="pnl-card-head"><div><h3>Historial de PNL</h3><p>Explora tus reportes anteriores y recupera sus resultados.</p></div></div>
         {errorHistorial && <p className="pnl-error" role="alert">{errorHistorial}</p>}
         {!errorHistorial && historial.length === 0 && <p className="pnl-empty">Todavía no hay análisis guardados.</p>}
         <div className="pnl-history-list">

@@ -373,7 +373,7 @@ export default function SofiPage({ onAnalisisGuardado }) {
       <section className="border-b border-[var(--border)] pb-7">
         <span className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[#0369a1]">ANÁLISIS / SOFI</span>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-[var(--ink)] sm:text-5xl">Detección de fallas</h1>
-        <p className="mt-4 max-w-2xl text-[13px] leading-7 text-[var(--muted)]">Analiza registros de dos switches y consulta las predicciones de posibles fallas en la red.</p>
+        <p className="mt-4 max-w-2xl text-[13px] leading-7 text-[var(--muted)]">Analiza registros de switches y consulta las predicciones de posibles fallas en la red.</p>
       </section>
 
       <form onSubmit={ejecutarAnalisis} className="rounded-xl border border-[var(--border)] bg-white p-5 sm:p-7">

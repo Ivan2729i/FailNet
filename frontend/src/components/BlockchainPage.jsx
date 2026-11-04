@@ -76,7 +76,7 @@ export default function BlockchainPage() {
       </header>
 
       <section className="bc-metrics" aria-label="Resumen de blockchain">
-        <div className="bc-metric"><span>Bloques registrados</span><strong>{datos?.total_bloques?.toLocaleString('es-MX') ?? '—'}</strong><small>Incluye el bloque génesis</small></div>
+        <div className="bc-metric"><span>Bloques registrados</span><strong>{datos?.total_bloques?.toLocaleString('es-MX') ?? '—'}</strong><small>Incluye el historico de los bloques</small></div>
         <div className="bc-metric"><span>Análisis con referencia</span><strong>{datos ? datos.bloques.filter(b => b.datos?.analisis_id).length.toLocaleString('es-MX') : '—'}</strong><small>Vínculos declarados en la cadena</small></div>
         <div className="bc-metric bc-metric-dark"><span>Estado de la cadena</span><strong className="bc-verification-state">{cadenaValida === true ? 'Íntegra' : cadenaValida === false ? 'Alterada' : 'Sin verificar'}</strong><small>Resultado de la última comprobación</small></div>
       </section>
