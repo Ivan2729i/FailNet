@@ -1,11 +1,10 @@
 import json
-from pathlib import Path
-from functools import lru_cache
-import joblib
 import re
-from ipaddress import IPv4Address, AddressValueError
+from functools import lru_cache
+from ipaddress import AddressValueError, IPv4Address
+from pathlib import Path
 
-
+import joblib
 
 try:
     from .extraer_entidades import extraer_entidades
@@ -38,9 +37,7 @@ def cargar_modelo():
     artefacto = joblib.load(MODELO_PATH)
 
     if "pipeline" not in artefacto:
-        raise ValueError(
-            "El modelo guardado no contiene " "el pipeline de clasificación."
-        )
+        raise ValueError("El modelo guardado no contiene el pipeline de clasificación.")
 
     return artefacto["pipeline"]
 
@@ -81,7 +78,7 @@ def analizar_reporte(texto):
     entidades = extraer_entidades(texto)
 
     # Complementar detección IPv4, incluso al final de una oración.
-    patron_ipv4 = re.compile(r'(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?!\w|\.\d)')
+    patron_ipv4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?!\w|\.\d)")
     ips = entidades.setdefault("direcciones_ip", [])
 
     for coincidencia in patron_ipv4.finditer(texto):
@@ -123,7 +120,6 @@ def mostrar_resultado(texto):
 # ==================================================
 
 if __name__ == "__main__":
-
     reportes = [
         (
             "Se detectó pérdida de conectividad "
@@ -156,7 +152,6 @@ if __name__ == "__main__":
     print("Funciones: clasificación, entidades y resumen")
 
     for numero, reporte in enumerate(reportes, start=1):
-
         print("\n" + "=" * 65)
         print(f"PRUEBA INTEGRADA {numero}")
         print("=" * 65)
@@ -175,7 +170,6 @@ if __name__ == "__main__":
     print("Presiona ENTER sin escribir nada para salir.")
 
     while True:
-
         try:
             texto = input("\nReporte > ").strip()
 

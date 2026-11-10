@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import pandas as pd
 
 # ==========================================
@@ -58,7 +59,6 @@ print(df.duplicated().sum())
 print("\nCOLUMNAS CON POCOS VALORES ÚNICOS")
 
 for columna in df.columns:
-
     unicos = df[columna].nunique(dropna=False)
 
     if unicos <= 10:

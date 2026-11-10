@@ -2,15 +2,14 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import (
     accuracy_score,
-    f1_score,
-    recall_score,
     classification_report,
     confusion_matrix,
+    f1_score,
+    recall_score,
 )
 
 # ==============================================
@@ -83,7 +82,6 @@ resultados = []
 # ==============================================
 
 for numero, (fin_train, fin_val) in enumerate(ventanas, 1):
-
     print("\n" + "=" * 65)
     print(f"PRUEBA TEMPORAL {numero}")
     print("=" * 65)
@@ -101,13 +99,7 @@ for numero, (fin_train, fin_val) in enumerate(ventanas, 1):
     print("Validación:", len(val))
 
     print("\nCLASES DE VALIDACIÓN")
-    print(
-        val["LABEL"]
-        .value_counts()
-        .reindex(CLASES, fill_value=0)
-        .sort_index()
-        .to_string()
-    )
+    print(val["LABEL"].value_counts().reindex(CLASES, fill_value=0).sort_index().to_string())
 
     # ==========================================
     # 5. PREPARAR DATOS
@@ -121,9 +113,7 @@ for numero, (fin_train, fin_val) in enumerate(ventanas, 1):
 
     X_val = X_val.replace([np.inf, -np.inf], np.nan)
 
-    columnas_validas = [
-        c for c in X_train.columns if X_train[c].nunique(dropna=True) > 1
-    ]
+    columnas_validas = [c for c in X_train.columns if X_train[c].nunique(dropna=True) > 1]
 
     X_train = X_train[columnas_validas]
     X_val = X_val[columnas_validas]
@@ -162,9 +152,7 @@ for numero, (fin_train, fin_val) in enumerate(ventanas, 1):
 
     macro_f1 = f1_score(y_val, pred, average="macro", labels=CLASES, zero_division=0)
 
-    macro_recall = recall_score(
-        y_val, pred, average="macro", labels=CLASES, zero_division=0
-    )
+    macro_recall = recall_score(y_val, pred, average="macro", labels=CLASES, zero_division=0)
 
     errores = int((y_val.to_numpy() != pred).sum())
 
@@ -200,7 +188,6 @@ for numero, (fin_train, fin_val) in enumerate(ventanas, 1):
 
     # Examinar por separado el bloque 10
     if fin_val == 10:
-
         mascara = val["Timestamp"] >= bloques[9][0]
 
         reales_b10 = y_val.to_numpy()[mascara]

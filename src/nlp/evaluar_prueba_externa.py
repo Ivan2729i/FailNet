@@ -1,6 +1,6 @@
-from pathlib import Path
-import unicodedata
 import re
+import unicodedata
+from pathlib import Path
 
 import joblib
 import pandas as pd
@@ -78,9 +78,7 @@ def evaluar():
     macro_precision = precision_score(
         y_true, y_pred, labels=CLASES, average="macro", zero_division=0
     )
-    macro_recall = recall_score(
-        y_true, y_pred, labels=CLASES, average="macro", zero_division=0
-    )
+    macro_recall = recall_score(y_true, y_pred, labels=CLASES, average="macro", zero_division=0)
     aciertos = int(prueba["correcto"].sum())
 
     print("=" * 65)

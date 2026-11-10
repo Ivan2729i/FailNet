@@ -1,12 +1,10 @@
-
 from collections import Counter, defaultdict
 from functools import lru_cache
 from pathlib import Path
+
 import joblib
 import numpy as np
 import pandas as pd
-
-
 
 BASE = Path(__file__).resolve().parents[3]
 MODELO_PATH = BASE / "models" / "digital_twin_clasificador.joblib"
@@ -26,6 +24,7 @@ RANGOS = {
 # Cargar el modelo entrenado
 # ==================================================
 
+
 @lru_cache(maxsize=1)
 def cargar_modelo_twin():
     if not MODELO_PATH.is_file():
@@ -34,7 +33,7 @@ def cargar_modelo_twin():
     artefacto = joblib.load(MODELO_PATH)
 
     if not isinstance(artefacto, dict):
-        raise ValueError("Formato del modelo Digital Twin inválido.")
+        raise TypeError("Formato del modelo Digital Twin inválido.")
 
     requeridos = {"modelo", "imputador", "columnas"}
     faltantes = requeridos - artefacto.keys()
@@ -52,12 +51,13 @@ def cargar_modelo_twin():
     if getattr(imputador, "n_features_in_", None) != 67:
         raise ValueError("El imputador no corresponde a las 67 características.")
 
-    clases = set(int(c) for c in modelo.classes_)
+    clases = {int(c) for c in modelo.classes_}
     if clases != set(range(5)):
         raise ValueError(f"Clases inesperadas en el modelo: {clases}")
 
     prohibidas = [
-        c for c in columnas
+        c
+        for c in columnas
         if c in {"LABEL", "Timestamp", "Host Name"}
         or c.lower().startswith(("bw_rx.", "bw_tx."))
         or "octets" in c.lower()
@@ -73,6 +73,7 @@ def cargar_modelo_twin():
 # Validar estructura del archivo
 # ==================================================
 
+
 def validar_estructura_twin(archivo, columnas):
     if hasattr(archivo, "seek"):
         archivo.seek(0)
@@ -87,8 +88,7 @@ def validar_estructura_twin(archivo, columnas):
 
     if faltantes:
         raise ValueError(
-            "El CSV no contiene las columnas necesarias:\n"
-            + "\n".join(f"- {c}" for c in faltantes)
+            "El CSV no contiene las columnas necesarias:\n" + "\n".join(f"- {c}" for c in faltantes)
         )
 
     if hasattr(archivo, "seek"):
@@ -98,6 +98,7 @@ def validar_estructura_twin(archivo, columnas):
 # ==================================================
 # Ejecutar inferencia por lotes
 # ==================================================
+
 
 def analizar_twin(archivo, salida_csv=None, tamano_lote=20000):
     artefacto = cargar_modelo_twin()
@@ -137,9 +138,7 @@ def analizar_twin(archivo, salida_csv=None, tamano_lote=20000):
 
     try:
         if ruta_salida:
-            salida = ruta_salida.open(
-                "w", encoding="utf-8-sig", newline=""
-            )
+            salida = ruta_salida.open("w", encoding="utf-8-sig", newline="")
 
         primer_lote = True
 
@@ -151,17 +150,10 @@ def analizar_twin(archivo, salida_csv=None, tamano_lote=20000):
             # Validación de metadatos
             # ------------------------------------------
 
-            timestamps = pd.to_numeric(
-                lote["Timestamp"], errors="coerce"
-            )
+            timestamps = pd.to_numeric(lote["Timestamp"], errors="coerce")
 
-            if (
-                timestamps.isna().any()
-                or (timestamps % 1 != 0).any()
-            ):
-                raise ValueError(
-                    f"Timestamp inválido en el lote {numero_lote}."
-                )
+            if timestamps.isna().any() or (timestamps % 1 != 0).any():
+                raise ValueError(f"Timestamp inválido en el lote {numero_lote}.")
 
             fechas = pd.to_datetime(
                 timestamps,
@@ -171,21 +163,15 @@ def analizar_twin(archivo, salida_csv=None, tamano_lote=20000):
             )
 
             if fechas.isna().any():
-                raise ValueError(
-                    f"Fechas inválidas en el lote {numero_lote}."
-                )
+                raise ValueError(f"Fechas inválidas en el lote {numero_lote}.")
 
             if lote["Host Name"].isna().any():
-                raise ValueError(
-                    f"Routers sin nombre en el lote {numero_lote}."
-                )
+                raise ValueError(f"Routers sin nombre en el lote {numero_lote}.")
 
             routers = lote["Host Name"].astype(str).str.strip()
 
             if routers.eq("").any():
-                raise ValueError(
-                    f"Routers vacíos en el lote {numero_lote}."
-                )
+                raise ValueError(f"Routers vacíos en el lote {numero_lote}.")
 
             # ------------------------------------------
             # Preparar las 67 características
@@ -193,18 +179,13 @@ def analizar_twin(archivo, salida_csv=None, tamano_lote=20000):
 
             X_original = lote[columnas]
 
-            X = X_original.apply(
-                pd.to_numeric, errors="coerce"
-            )
+            X = X_original.apply(pd.to_numeric, errors="coerce")
 
-            invalidos = (
-                X_original.notna() & X.isna()
-            ).sum().sum()
+            invalidos = (X_original.notna() & X.isna()).sum().sum()
 
             if invalidos:
                 raise ValueError(
-                    f"El lote {numero_lote} contiene "
-                    f"{invalidos} valores no numéricos."
+                    f"El lote {numero_lote} contiene {invalidos} valores no numéricos."
                 )
 
             X = X.replace([np.inf, -np.inf], np.nan)
@@ -226,42 +207,32 @@ def analizar_twin(archivo, salida_csv=None, tamano_lote=20000):
             # La confianza es una puntuación del
             # clasificador, no una probabilidad calibrada.
 
-            resultado_lote = pd.DataFrame({
-                "timestamp": timestamps.astype("int64").to_numpy(),
-                "fecha_utc": fechas.dt.strftime(
-                    "%Y-%m-%dT%H:%M:%SZ"
-                ).to_numpy(),
-                "router": routers.to_numpy(),
-                "nivel": niveles,
-                "rango_trafico": [
-                    RANGOS[int(n)] for n in niveles
-                ],
-                "confianza_modelo": confianza.round(6),
-            })
+            resultado_lote = pd.DataFrame(
+                {
+                    "timestamp": timestamps.astype("int64").to_numpy(),
+                    "fecha_utc": fechas.dt.strftime("%Y-%m-%dT%H:%M:%SZ").to_numpy(),
+                    "router": routers.to_numpy(),
+                    "nivel": niveles,
+                    "rango_trafico": [RANGOS[int(n)] for n in niveles],
+                    "confianza_modelo": confianza.round(6),
+                }
+            )
 
             # ------------------------------------------
             # Actualizar estadísticas
             # ------------------------------------------
 
             total += len(resultado_lote)
-            conteo_niveles.update(
-                int(n) for n in niveles
-            )
+            conteo_niveles.update(int(n) for n in niveles)
 
-            por_router = resultado_lote.groupby(
-                ["router", "nivel"]
-            ).size()
+            por_router = resultado_lote.groupby(["router", "nivel"]).size()
 
             for (router, nivel), cantidad in por_router.items():
                 conteo_routers[str(router)][int(nivel)] += int(cantidad)
 
-            resultado_lote["dia"] = (
-                resultado_lote["fecha_utc"].str[:10]
-            )
+            resultado_lote["dia"] = resultado_lote["fecha_utc"].str[:10]
 
-            por_dia = resultado_lote.groupby(
-                ["dia", "nivel"]
-            ).size()
+            por_dia = resultado_lote.groupby(["dia", "nivel"]).size()
 
             for (dia, nivel), cantidad in por_dia.items():
                 conteo_dias[str(dia)][int(nivel)] += int(cantidad)
@@ -271,25 +242,17 @@ def analizar_twin(archivo, salida_csv=None, tamano_lote=20000):
             # ------------------------------------------
 
             if salida is not None:
-                resultado_lote.drop(columns=["dia"]).to_csv(
-                    salida, index=False, header=primer_lote
-                )
+                resultado_lote.drop(columns=["dia"]).to_csv(salida, index=False, header=primer_lote)
 
             if len(muestra) < 10:
                 pendientes = 10 - len(muestra)
                 muestra.extend(
-                    resultado_lote.drop(columns=["dia"])
-                    .head(pendientes)
-                    .to_dict("records")
+                    resultado_lote.drop(columns=["dia"]).head(pendientes).to_dict("records")
                 )
 
             primer_lote = False
 
-            print(
-                f"Lote {numero_lote}: "
-                f"{len(lote):,} registros | "
-                f"Acumulados: {total:,}"
-            )
+            print(f"Lote {numero_lote}: {len(lote):,} registros | Acumulados: {total:,}")
 
         if total == 0:
             raise ValueError("El archivo CSV no contiene registros.")
@@ -316,9 +279,7 @@ def analizar_twin(archivo, salida_csv=None, tamano_lote=20000):
             "nivel": nivel,
             "rango": RANGOS[nivel],
             "registros": conteo_niveles[nivel],
-            "porcentaje": round(
-                100 * conteo_niveles[nivel] / total, 2
-            ),
+            "porcentaje": round(100 * conteo_niveles[nivel] / total, 2),
         }
         for nivel in range(5)
     ]
@@ -327,9 +288,7 @@ def analizar_twin(archivo, salida_csv=None, tamano_lote=20000):
         {
             "router": router,
             "total": sum(conteos.values()),
-            "niveles": {
-                str(n): conteos[n] for n in range(5)
-            },
+            "niveles": {str(n): conteos[n] for n in range(5)},
         }
         for router, conteos in sorted(conteo_routers.items())
     ]
@@ -338,9 +297,7 @@ def analizar_twin(archivo, salida_csv=None, tamano_lote=20000):
         {
             "fecha": dia,
             "total": sum(conteos.values()),
-            "niveles": {
-                str(n): conteos[n] for n in range(5)
-            },
+            "niveles": {str(n): conteos[n] for n in range(5)},
         }
         for dia, conteos in sorted(conteo_dias.items())
     ]
@@ -363,6 +320,7 @@ def analizar_twin(archivo, salida_csv=None, tamano_lote=20000):
 # ==================================================
 # Prueba local del servicio
 # ==================================================
+
 
 def main():
     print("=" * 65)
@@ -402,11 +360,7 @@ def main():
     print("\nRESULTADOS POR ROUTER")
 
     for router in resultado["routers"]:
-        print(
-            f"{router['router']}: "
-            f"{router['total']:,} registros | "
-            f"{router['niveles']}"
-        )
+        print(f"{router['router']}: {router['total']:,} registros | {router['niveles']}")
 
     print("\nPRIMERAS 5 PREDICCIONES")
 

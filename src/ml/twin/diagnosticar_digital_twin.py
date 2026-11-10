@@ -2,10 +2,9 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import accuracy_score, f1_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, f1_score
 
 # ==========================================
 # 1. CARGAR DATOS
@@ -112,9 +111,9 @@ print(
 # 5. IMPORTANCIA DE VARIABLES
 # ==========================================
 
-importancia = pd.Series(
-    modelo.feature_importances_, index=columnas_validas
-).sort_values(ascending=False)
+importancia = pd.Series(modelo.feature_importances_, index=columnas_validas).sort_values(
+    ascending=False
+)
 
 print("\n" + "=" * 65)
 print("20 CARACTERÍSTICAS MÁS IMPORTANTES")
@@ -140,7 +139,6 @@ hosts = val["Host Name"].to_numpy()
 reales = y_val.to_numpy()
 
 for host in sorted(np.unique(hosts)):
-
     mascara = hosts == host
 
     real_host = reales[mascara]
@@ -148,7 +146,7 @@ for host in sorted(np.unique(hosts)):
 
     accuracy = accuracy_score(real_host, pred_host)
 
-    print(f"\n{host}: " f"{mascara.sum()} registros, " f"accuracy={accuracy:.4f}")
+    print(f"\n{host}: {mascara.sum()} registros, accuracy={accuracy:.4f}")
 
     if len(np.unique(real_host)) > 1:
         macro_f1 = f1_score(
@@ -161,7 +159,7 @@ for host in sorted(np.unique(hosts)):
 
         print(f"Macro-F1: {macro_f1:.4f}")
     else:
-        print("Una sola clase real: " "macro-F1 multiclase no comparable")
+        print("Una sola clase real: macro-F1 multiclase no comparable")
 
 # ==========================================
 # 7. ERRORES CERCA DE LOS LIMITES
@@ -186,12 +184,11 @@ print("=" * 65)
 print("Errores totales:", int(errores.sum()))
 
 for margen in [0.5, 1.0, 2.0, 5.0]:
-
     cercanos = distancias <= margen
 
     errores_cercanos = int(np.sum(errores & cercanos))
 
-    print(f"Errores a <= {margen} Mbps " f"de una frontera: {errores_cercanos}")
+    print(f"Errores a <= {margen} Mbps de una frontera: {errores_cercanos}")
 
 print("\nREPORTE FINAL POR CLASE")
 

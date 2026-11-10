@@ -1,5 +1,5 @@
-
 from copy import deepcopy
+
 from src.blockchain.registro_blockchain import RegistroBlockchain
 
 # Cargar la cadena original.

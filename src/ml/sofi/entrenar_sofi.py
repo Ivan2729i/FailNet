@@ -1,17 +1,16 @@
 from pathlib import Path
 
 import pandas as pd
-
 from sklearn.dummy import DummyClassifier
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     classification_report,
     confusion_matrix,
+    f1_score,
     precision_score,
     recall_score,
-    f1_score,
 )
+from sklearn.tree import DecisionTreeClassifier
 
 # ==========================================================
 # 1. CONFIGURACIÓN Y CARGA DEL DATASET
@@ -131,7 +130,6 @@ modelos = {
 # ==========================================================
 
 for nombre, modelo in modelos.items():
-
     print("\n" + "=" * 60)
     print(f"MODELO: {nombre}")
     print("=" * 60)
@@ -161,7 +159,6 @@ for nombre, modelo in modelos.items():
     # ======================================================
 
     if nombre == "Random Forest":
-
         print("\n" + "=" * 60)
         print("COMPARACIÓN DE UMBRALES - RANDOM FOREST")
         print("=" * 60)
@@ -176,7 +173,6 @@ for nombre, modelo in modelos.items():
         resultados = []
 
         for umbral in umbrales:
-
             # Clasificación según el umbral actual
             pred = (probabilidades >= umbral).astype(int)
 
@@ -224,10 +220,7 @@ for nombre, modelo in modelos.items():
         print(f"Fallas omitidas: {int(mejor['Omitidas'])}")
         print(f"Falsas alarmas: {int(mejor['Falsas alarmas'])}")
 
-        print(
-            "\nNOTA: Este umbral es provisional. "
-            "Todavía no se ha evaluado en la prueba final."
-        )
+        print("\nNOTA: Este umbral es provisional. Todavía no se ha evaluado en la prueba final.")
 
 # ==========================================================
 # 7. FINALIZACIÓN

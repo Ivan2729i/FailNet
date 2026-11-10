@@ -1,11 +1,10 @@
 from pathlib import Path
 
 import pandas as pd
-
-from sklearn.svm import LinearSVC
-from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import StratifiedKFold, cross_val_predict
+from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVC
 
 # ==========================================
 # 1. RUTAS
@@ -73,7 +72,6 @@ print("REPORTES CLASIFICADOS INCORRECTAMENTE")
 print("=" * 65)
 
 for _, fila in errores.iterrows():
-
     print("\n" + "-" * 60)
 
     print("REPORTE:")
@@ -91,7 +89,6 @@ print("CONFUSIONES MÁS FRECUENTES")
 print("=" * 65)
 
 if not errores.empty:
-
     resumen = (
         errores.groupby(["categoria", "prediccion"])
         .size()

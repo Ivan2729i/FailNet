@@ -2,11 +2,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
-from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import TimeSeriesSplit
 
 # ==============================================
 # 1. CARGAR DATOS
@@ -60,7 +59,6 @@ print("OPTIMIZACIÓN DE UMBRALES - SOFI")
 print("=" * 60)
 
 for numero, (train_idx, val_idx) in enumerate(cv.split(X_dev), 1):
-
     # Evitar compartir episodios de falla
     ids_train = set(episodios.iloc[train_idx]) - {0}
 
@@ -114,9 +112,7 @@ for numero, (train_idx, val_idx) in enumerate(cv.split(X_dev), 1):
         }
     )
 
-    print(
-        f"Ventana {numero}: " f"{len(y_val)} registros, " f"{int(y_val.sum())} fallas"
-    )
+    print(f"Ventana {numero}: {len(y_val)} registros, {int(y_val.sum())} fallas")
 
 # ==============================================
 # 5. EVALUAR UMBRALES
@@ -127,14 +123,12 @@ umbrales = np.round(np.arange(0.05, 0.501, 0.025), 3)
 resultados = []
 
 for umbral in umbrales:
-
     tp_total = 0
     fp_total = 0
     fn_total = 0
     tn_total = 0
 
     for ventana in resultados_ventanas:
-
         y_real = ventana["y_real"]
 
         pred = (ventana["probabilidades"] >= umbral).astype(int)
@@ -200,12 +194,11 @@ print("Falsas alarmas:", int(mejor["falsas_alarmas"]))
 print("\nRESULTADOS DEL MEJOR UMBRAL POR VENTANA")
 
 for ventana in resultados_ventanas:
-
     pred = (ventana["probabilidades"] >= mejor["umbral"]).astype(int)
 
     tn, fp, fn, tp = confusion_matrix(ventana["y_real"], pred, labels=[0, 1]).ravel()
 
-    print(f"Ventana {ventana['ventana']}: " f"TP={tp}, FP={fp}, FN={fn}, TN={tn}")
+    print(f"Ventana {ventana['ventana']}: TP={tp}, FP={fp}, FN={fn}, TN={tn}")
 
 # Guardar reporte
 ruta = REPORTS / "sofi_optimizacion_umbrales.csv"

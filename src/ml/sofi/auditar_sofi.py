@@ -38,7 +38,6 @@ print("=" * 60)
 resultados = []
 
 for columna in X.columns:
-
     negativos = X[columna] < 0
 
     cantidad = int(negativos.sum())
@@ -53,9 +52,7 @@ for columna in X.columns:
             "porcentaje": round(negativos.mean() * 100, 2),
             "menos_1": int((X[columna] == -1).sum()),
             "menos_2": int((X[columna] == -2).sum()),
-            "otros_negativos": int(
-                ((X[columna] < 0) & ~X[columna].isin([-1, -2])).sum()
-            ),
+            "otros_negativos": int(((X[columna] < 0) & ~X[columna].isin([-1, -2])).sum()),
         }
     )
 
@@ -87,33 +84,29 @@ print("COMPARACIÓN POR VENTANAS Y CLASES")
 print("=" * 60)
 
 for numero, (train_idx, val_idx) in enumerate(cv.split(X), 1):
-
     if numero == 1:
         continue
 
     print(f"\nVENTANA {numero}")
 
     for nombre, indices in [("ENTRENAMIENTO", train_idx), ("VALIDACIÓN", val_idx)]:
-
         datos = X.iloc[indices]
         etiquetas = y.iloc[indices]
 
         print(f"\n{nombre}")
 
         for clase in ["NE", "F"]:
-
             subconjunto = datos.loc[etiquetas == clase]
 
             if subconjunto.empty:
                 continue
 
-            print(f"\nClase {clase}: " f"{len(subconjunto)} registros")
+            print(f"\nClase {clase}: {len(subconjunto)} registros")
 
             for variable in variables:
-
                 porcentaje = (subconjunto[variable] < 0).mean() * 100
 
-                print(f"  {variable}: " f"{porcentaje:.2f}% negativos")
+                print(f"  {variable}: {porcentaje:.2f}% negativos")
 
 print("\nAuditoría finalizada.")
 print("No se modificaron los datos originales.")

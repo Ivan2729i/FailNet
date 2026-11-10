@@ -1,11 +1,8 @@
-
 import os
-import logging
 from pathlib import Path
-from dotenv import load_dotenv
+
 from django.core.exceptions import ImproperlyConfigured
-
-
+from dotenv import load_dotenv
 
 # ==================================================
 # DIRECTORIOS Y VARIABLES DE ENTORNO
@@ -22,16 +19,14 @@ load_dotenv(
 # FUNCIONES PARA LEER CONFIGURACIÓN
 # ==================================================
 
+
 def env(nombre, default=None, required=False):
 
     valor = os.getenv(nombre, default)
-    if required and (
-        valor is None or not str(valor).strip()
-    ):
-        raise ImproperlyConfigured(
-            f"Falta configurar {nombre} en el entorno."
-        )
+    if required and (valor is None or not str(valor).strip()):
+        raise ImproperlyConfigured(f"Falta configurar {nombre} en el entorno.")
     return valor
+
 
 def env_bool(nombre, default=False):
     valor = os.getenv(nombre)
@@ -42,31 +37,24 @@ def env_bool(nombre, default=False):
         return True
     if valor in ("false", "0", "no", "off"):
         return False
-    raise ImproperlyConfigured(
-        f"{nombre} debe ser True o False."
-    )
+    raise ImproperlyConfigured(f"{nombre} debe ser True o False.")
+
 
 def env_int(nombre, default=0):
     valor = env(nombre, default=str(default))
     try:
         numero = int(valor)
     except (ValueError, TypeError):
-        raise ImproperlyConfigured(
-            f"{nombre} debe ser un número entero."
-        )
+        raise ImproperlyConfigured(f"{nombre} debe ser un número entero.")
     if numero < 0:
-        raise ImproperlyConfigured(
-            f"{nombre} no puede ser negativo."
-        )
+        raise ImproperlyConfigured(f"{nombre} no puede ser negativo.")
     return numero
+
 
 def env_list(nombre, default=""):
     valor = env(nombre, default=default)
-    return [
-        item.strip()
-        for item in valor.split(",")
-        if item.strip()
-    ]
+    return [item.strip() for item in valor.split(",") if item.strip()]
+
 
 # ==================================================
 # SEGURIDAD Y CONFIGURACIÓN GENERAL
@@ -80,17 +68,10 @@ DEBUG = env_bool(
     "DJANGO_DEBUG",
     default=False,
 )
-ALLOWED_HOSTS = env_list(
-    "DJANGO_ALLOWED_HOSTS"
-)
-CSRF_TRUSTED_ORIGINS = env_list(
-    "DJANGO_CSRF_TRUSTED_ORIGINS"
-)
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS")
+CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
 if not DEBUG and not ALLOWED_HOSTS:
-    raise ImproperlyConfigured(
-        "Configura DJANGO_ALLOWED_HOSTS "
-        "antes de ejecutar en producción."
-    )
+    raise ImproperlyConfigured("Configura DJANGO_ALLOWED_HOSTS antes de ejecutar en producción.")
 
 # ==================================================
 # APLICACIONES INSTALADAS
@@ -123,10 +104,7 @@ ASGI_APPLICATION = "failnet_web.asgi.application"
 
 TEMPLATES = [
     {
-        "BACKEND": (
-            "django.template.backends.django."
-            "DjangoTemplates"
-        ),
+        "BACKEND": ("django.template.backends.django.DjangoTemplates"),
         "DIRS": [
             BASE_DIR / "templates",
         ],
@@ -160,13 +138,8 @@ MONGODB_DB_NAME = env(
     "MONGODB_DB_NAME",
     required=True,
 )
-if not MONGODB_HOST.startswith(
-    "mongodb+srv://"
-):
-    raise ImproperlyConfigured(
-        "MONGODB_HOST debe comenzar "
-        "con mongodb+srv://"
-    )
+if not MONGODB_HOST.startswith("mongodb+srv://"):
+    raise ImproperlyConfigured("MONGODB_HOST debe comenzar con mongodb+srv://")
 
 DATABASES = {
     "default": {
@@ -187,12 +160,8 @@ DATABASES = {
 # CONFIGURACIÓN DE MONGODB
 # ==================================================
 
-DEFAULT_AUTO_FIELD = (
-    "django_mongodb_backend.fields.ObjectIdAutoField"
-)
-DATABASE_ROUTERS = [
-    "django_mongodb_backend.routers.MongoRouter"
-]
+DEFAULT_AUTO_FIELD = "django_mongodb_backend.fields.ObjectIdAutoField"
+DATABASE_ROUTERS = ["django_mongodb_backend.routers.MongoRouter"]
 
 # ==================================================
 # IDIOMA Y ZONA HORARIA
@@ -252,9 +221,7 @@ SECURE_HSTS_SECONDS = env_int(
     default=0,
 )
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_REFERRER_POLICY = (
-    "strict-origin-when-cross-origin"
-)
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 X_FRAME_OPTIONS = "DENY"
 
 # ==================================================
@@ -263,10 +230,7 @@ X_FRAME_OPTIONS = "DENY"
 
 MAILERS = {
     "default": {
-        "BACKEND": (
-            "django.core.mail.backends."
-            "console.EmailBackend"
-        ),
+        "BACKEND": ("django.core.mail.backends.console.EmailBackend"),
     },
 }
 
@@ -286,20 +250,13 @@ LOG_LEVELS_VALIDOS = {
     "CRITICAL",
 }
 if LOG_LEVEL not in LOG_LEVELS_VALIDOS:
-    raise ImproperlyConfigured(
-        "DJANGO_LOG_LEVEL contiene "
-        "un nivel no válido."
-    )
+    raise ImproperlyConfigured("DJANGO_LOG_LEVEL contiene un nivel no válido.")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "standard": {
-            "format": (
-                "[{levelname}] "
-                "{asctime} "
-                "{name}: {message}"
-            ),
+            "format": ("[{levelname}] {asctime} {name}: {message}"),
             "style": "{",
         },
     },
@@ -322,4 +279,3 @@ LOGGING = {
         },
     },
 }
-

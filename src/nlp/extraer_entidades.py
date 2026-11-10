@@ -1,6 +1,6 @@
-import re
-import json
 import ipaddress
+import json
+import re
 
 # ==================================================
 # 1. PATRONES DE IDENTIFICACIÓN
@@ -87,7 +87,6 @@ def valores_unicos(valores):
     encontrados = set()
 
     for valor in valores:
-
         valor = valor.strip()
         clave = valor.lower()
 
@@ -110,7 +109,6 @@ def extraer_ips(texto):
     ips_validas = []
 
     for candidato in candidatos:
-
         try:
             ipaddress.IPv4Address(candidato)
             ips_validas.append(candidato)
@@ -140,9 +138,7 @@ def extraer_dispositivos(texto):
 
 def extraer_interfaces(texto):
 
-    encontrados = [
-        coincidencia.group() for coincidencia in PATRON_INTERFACES.finditer(texto)
-    ]
+    encontrados = [coincidencia.group() for coincidencia in PATRON_INTERFACES.finditer(texto)]
 
     return valores_unicos(encontrados)
 
@@ -184,7 +180,6 @@ def extraer_entidades(texto):
 # ==================================================
 
 if __name__ == "__main__":
-
     reportes = [
         (
             "Se detectó pérdida de conectividad "
@@ -197,21 +192,13 @@ if __name__ == "__main__":
             "Fa0/10. El servidor 10.0.0.5 "
             "no responde a solicitudes ICMP."
         ),
-        (
-            "El router R1 reporta una falla DNS "
-            "hacia 8.8.8.8 y problemas con "
-            "el servicio HTTPS."
-        ),
+        ("El router R1 reporta una falla DNS hacia 8.8.8.8 y problemas con el servicio HTTPS."),
         (
             "La interfaz eth0 del servidor "
             "perdió conectividad. Se verificó "
             "la comunicación mediante SSH."
         ),
-        (
-            "El equipo reportó la dirección "
-            "999.999.999.999, que no es una "
-            "dirección IPv4 válida."
-        ),
+        ("El equipo reportó la dirección 999.999.999.999, que no es una dirección IPv4 válida."),
     ]
 
     print("=" * 65)
@@ -219,7 +206,6 @@ if __name__ == "__main__":
     print("=" * 65)
 
     for numero, reporte in enumerate(reportes, start=1):
-
         print("\n" + "=" * 65)
         print(f"PRUEBA {numero}")
         print("=" * 65)

@@ -2,14 +2,12 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
-from imblearn.over_sampling import RandomOverSampler, SMOTE
-
+from imblearn.over_sampling import SMOTE, RandomOverSampler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import confusion_matrix
 
 # ==================================================
 # 1. CONFIGURACIÓN
@@ -56,9 +54,7 @@ def cargar_switch(nombre):
 sw1 = cargar_switch("SOFI CoreSwitch-I.csv")
 sw2 = cargar_switch("SOFI CoreSwitch-II.csv")
 
-df = sw1.merge(
-    sw2, on="timestamp", how="inner", suffixes=("_I", "_II"), validate="one_to_one"
-)
+df = sw1.merge(sw2, on="timestamp", how="inner", suffixes=("_I", "_II"), validate="one_to_one")
 
 df = df.sort_values("timestamp").reset_index(drop=True)
 
@@ -107,7 +103,6 @@ episodios = (fallas & ~fallas.shift(fill_value=False)).cumsum().where(fallas, 0)
 splits = []
 
 for numero, (train_idx, val_idx) in enumerate(cv.split(X_dev), 1):
-
     ids_train = set(episodios.iloc[train_idx]) - {0}
 
     ids_val = set(episodios.iloc[val_idx]) - {0}
@@ -162,7 +157,6 @@ resultados = []
 predicciones_cv = {}
 
 for nombre, metodo, proporcion in CONFIGURACIONES:
-
     print("\n" + "=" * 65)
     print("CONFIGURACIÓN:", nombre)
     print("=" * 65)
@@ -170,7 +164,6 @@ for nombre, metodo, proporcion in CONFIGURACIONES:
     probabilidades = np.full(len(X_dev), np.nan)
 
     for numero, (train_idx, val_idx) in enumerate(splits, 1):
-
         x_train = X_dev.iloc[train_idx].copy()
         x_val = X_dev.iloc[val_idx].copy()
 
@@ -195,13 +188,11 @@ for nombre, metodo, proporcion in CONFIGURACIONES:
         # ------------------------------------------
 
         if metodo == "ros":
-
             sampler = RandomOverSampler(sampling_strategy=proporcion, random_state=42)
 
             train_p, y_train_p = sampler.fit_resample(train_p, y_train_p)
 
         elif metodo == "smote":
-
             # SMOTE utiliza vecinos cercanos.
             # Escalar evita que variables de magnitud
             # alta dominen las distancias.
@@ -242,11 +233,7 @@ for nombre, metodo, proporcion in CONFIGURACIONES:
         normales = int((y_train_p == 0).sum())
         fallas_train = int((y_train_p == 1).sum())
 
-        print(
-            f"Ventana {numero}: "
-            f"entrenamiento final "
-            f"NE={normales}, F={fallas_train}"
-        )
+        print(f"Ventana {numero}: entrenamiento final NE={normales}, F={fallas_train}")
 
     predicciones_cv[nombre] = probabilidades
 
@@ -260,7 +247,6 @@ for nombre, metodo, proporcion in CONFIGURACIONES:
     probs = probabilidades[mascara]
 
     for umbral in UMBRALES:
-
         pred = (probs >= umbral).astype(int)
 
         metricas = calcular_metricas(reales, pred)
@@ -281,14 +267,12 @@ for nombre, metodo, proporcion in CONFIGURACIONES:
 
 tabla = pd.DataFrame(resultados)
 
-tabla = tabla.sort_values(
-    ["f1", "recall", "fp"], ascending=[False, False, True]
-).reset_index(drop=True)
-
-# Mejor umbral de cada configuración
-mejores = tabla.drop_duplicates(subset=["configuracion"], keep="first").reset_index(
+tabla = tabla.sort_values(["f1", "recall", "fp"], ascending=[False, False, True]).reset_index(
     drop=True
 )
+
+# Mejor umbral de cada configuración
+mejores = tabla.drop_duplicates(subset=["configuracion"], keep="first").reset_index(drop=True)
 
 columnas_resumen = [
     "configuracion",
@@ -305,19 +289,13 @@ print("\n" + "=" * 65)
 print("MEJOR RESULTADO DE CADA CONFIGURACIÓN")
 print("=" * 65)
 
-print(
-    mejores[columnas_resumen].to_string(index=False, float_format=lambda n: f"{n:.3f}")
-)
+print(mejores[columnas_resumen].to_string(index=False, float_format=lambda n: f"{n:.3f}"))
 
 print("\n" + "=" * 65)
 print("TOP 15 COMBINACIONES GLOBALES")
 print("=" * 65)
 
-print(
-    tabla[columnas_resumen]
-    .head(15)
-    .to_string(index=False, float_format=lambda n: f"{n:.3f}")
-)
+print(tabla[columnas_resumen].head(15).to_string(index=False, float_format=lambda n: f"{n:.3f}"))
 
 # ==================================================
 # 8. COMPARACIÓN POR VENTANA
@@ -328,7 +306,6 @@ print("ESTABILIDAD POR VENTANA")
 print("=" * 65)
 
 for _, candidato in mejores.iterrows():
-
     nombre = candidato["configuracion"]
     umbral = float(candidato["umbral"])
 
@@ -337,20 +314,13 @@ for _, candidato in mejores.iterrows():
     print(f"\n{nombre} | Umbral={umbral:.3f}")
 
     for numero, (_, val_idx) in enumerate(splits, 1):
-
         reales = y_dev.iloc[val_idx].to_numpy()
 
         pred = (probs[val_idx] >= umbral).astype(int)
 
         m = calcular_metricas(reales, pred)
 
-        print(
-            f"  Ventana {numero}: "
-            f"TP={m['tp']} "
-            f"FN={m['fn']} "
-            f"FP={m['fp']} "
-            f"F1={m['f1']:.3f}"
-        )
+        print(f"  Ventana {numero}: TP={m['tp']} FN={m['fn']} FP={m['fp']} F1={m['f1']:.3f}")
 
 # ==================================================
 # 9. RESULTADO PROVISIONAL

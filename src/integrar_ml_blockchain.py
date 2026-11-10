@@ -27,7 +27,6 @@ def calcular_hash_archivo(ruta):
     sha256 = hashlib.sha256()
 
     with ruta.open("rb") as archivo:
-
         for fragmento in iter(lambda: archivo.read(1024 * 1024), b""):
             sha256.update(fragmento)
 
@@ -42,7 +41,6 @@ def calcular_hash_archivo(ruta):
 def leer_primera_prediccion(ruta):
 
     with ruta.open("r", encoding="utf-8-sig", newline="") as archivo:
-
         lector = csv.DictReader(archivo)
 
         if not lector.fieldnames:
@@ -71,7 +69,6 @@ def crear_identificador(tipo, hash_archivo):
 def ya_registrado(blockchain, identificador):
 
     for bloque in blockchain.obtener_bloques():
-
         datos = bloque.get("datos", {})
 
         if datos.get("id_registro") == identificador:
@@ -94,13 +91,11 @@ def main():
     blockchain = RegistroBlockchain()
 
     for tipo, ruta in ARCHIVOS.items():
-
         print("\n" + "=" * 65)
         print("MODELO:", tipo)
         print("=" * 65)
 
         if not ruta.exists():
-
             print("No se encontró:", ruta)
 
             continue
@@ -113,7 +108,6 @@ def main():
             hash_archivo = calcular_hash_archivo(ruta)
 
         except (OSError, ValueError) as error:
-
             print("Error leyendo el CSV:", error)
             continue
 
@@ -122,7 +116,6 @@ def main():
         # No registrar la misma fila del
         # mismo archivo más de una vez.
         if ya_registrado(blockchain, identificador):
-
             print("Esta predicción ya fue registrada.")
 
             continue

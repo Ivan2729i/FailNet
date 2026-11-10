@@ -15,7 +15,6 @@ import os
 import tempfile
 from pathlib import Path
 
-
 RAIZ = Path(__file__).resolve().parent
 CADENA = RAIZ / "data" / "blockchain" / "cadena.json"
 RESPALDO = CADENA.with_name("cadena.json.prueba.respaldo")
@@ -44,17 +43,16 @@ def escribir_atomico(ruta, contenido):
 def leer_bloques(contenido):
     bloques = json.loads(contenido.decode("utf-8-sig"))
     if not isinstance(bloques, list):
-        raise ValueError("cadena.json no contiene una lista de bloques.")
+        raise TypeError("cadena.json no contiene una lista de bloques.")
     return bloques
 
 
 def encontrar_bloque(bloques, indice):
-    coincidencias = [
-        b for b in bloques
-        if isinstance(b, dict) and b.get("indice") == indice
-    ]
+    coincidencias = [b for b in bloques if isinstance(b, dict) and b.get("indice") == indice]
     if len(coincidencias) != 1:
-        raise ValueError(f"Se esperó exactamente un bloque con índice {indice}; encontrados: {len(coincidencias)}.")
+        raise ValueError(
+            f"Se esperó exactamente un bloque con índice {indice}; encontrados: {len(coincidencias)}."
+        )
     return coincidencias[0]
 
 
@@ -71,7 +69,11 @@ def alterar(indice):
     bloques = leer_bloques(original)
     bloque = encontrar_bloque(bloques, indice)
     hash_original = bloque.get("hash")
-    if not isinstance(hash_original, str) or len(hash_original) != 64 or any(c not in "0123456789abcdefABCDEF" for c in hash_original):
+    if (
+        not isinstance(hash_original, str)
+        or len(hash_original) != 64
+        or any(c not in "0123456789abcdefABCDEF" for c in hash_original)
+    ):
         raise ValueError("El bloque no tiene un hash SHA-256 hexadecimal válido de 64 caracteres.")
 
     # Cambia UN carácter del hash del bloque. No recalcula bloques siguientes.
@@ -92,15 +94,15 @@ def alterar(indice):
         salida.write(original)
         salida.flush()
         os.fsync(salida.fileno())
-    try:
-        with ESTADO.open("x", encoding="utf-8") as salida:
-            json.dump(informacion, salida, indent=2, ensure_ascii=False)
-            salida.flush()
-            os.fsync(salida.fileno())
-        escribir_atomico(CADENA, modificado)
-    except Exception:
-        # Mantener respaldo; posible recuperación manual si la operación se interrumpió.
-        raise
+
+    # Guardar los datos necesarios para restaurar la cadena.
+    escribir_atomico(
+        ESTADO,
+        json.dumps(informacion, ensure_ascii=False, indent=2).encode("utf-8"),
+    )
+
+    # Alterar únicamente el archivo de la cadena.
+    escribir_atomico(CADENA, modificado)
 
     print(f"Bloque alterado: índice {indice} (de {len(bloques)} bloques).")
     print(f"Hash anterior: {hash_original[:20]}...")
@@ -116,7 +118,9 @@ def restaurar(indice):
         raise RuntimeError("No existe una prueba con respaldo completo que se pueda restaurar.")
     info = json.loads(ESTADO.read_text(encoding="utf-8"))
     if info.get("indice") != indice:
-        raise ValueError(f"La prueba activa corresponde al bloque {info.get('indice')}, no al {indice}.")
+        raise ValueError(
+            f"La prueba activa corresponde al bloque {info.get('indice')}, no al {indice}."
+        )
 
     respaldo = RESPALDO.read_bytes()
     if sha256(respaldo) != info.get("sha256_archivo_original"):
@@ -146,12 +150,20 @@ def estado():
     info = json.loads(ESTADO.read_text(encoding="utf-8"))
     print("Prueba activa en bloque:", info.get("indice"))
     print("Respaldo presente:", RESPALDO.is_file())
-    print("Archivo modificado tal como lo dejó la prueba:", CADENA.is_file() and sha256(CADENA.read_bytes()) == info.get("sha256_archivo_modificado"))
-    print("Restaurar usando: python probar_alteracion_blockchain.py restaurar", info.get("indice"))
+    print(
+        "Archivo modificado tal como lo dejó la prueba:",
+        CADENA.is_file() and sha256(CADENA.read_bytes()) == info.get("sha256_archivo_modificado"),
+    )
+    print(
+        "Restaurar usando: python probar_alteracion_blockchain.py restaurar",
+        info.get("indice"),
+    )
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Prueba reversible de integridad blockchain de FailNet")
+    parser = argparse.ArgumentParser(
+        description="Prueba reversible de integridad blockchain de FailNet"
+    )
     parser.add_argument("accion", choices=["alterar", "restaurar", "estado"])
     parser.add_argument("indice", nargs="?", type=int, help="Índice de bloque, por ejemplo 6")
     args = parser.parse_args()
@@ -168,5 +180,5 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as error:
+    except (OSError, ValueError, TypeError, RuntimeError) as error:
         raise SystemExit(f"ERROR: {error}")

@@ -2,19 +2,17 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from sklearn.dummy import DummyClassifier
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
-
 from sklearn.metrics import (
     accuracy_score,
-    f1_score,
-    recall_score,
     classification_report,
     confusion_matrix,
+    f1_score,
+    recall_score,
 )
+from sklearn.tree import DecisionTreeClassifier
 
 # ==================================================
 # 1. CONFIGURACIÓN
@@ -125,7 +123,6 @@ y_train = train["LABEL"].astype(int)
 y_val = val["LABEL"].astype(int)
 
 for experimento, columnas in experimentos.items():
-
     print("\n" + "=" * 65)
     print("EXPERIMENTO:", experimento)
     print("=" * 65)
@@ -140,9 +137,7 @@ for experimento, columnas in experimentos.items():
 
     # Seleccionar variables no constantes,
     # usando exclusivamente entrenamiento.
-    columnas_validas = [
-        c for c in X_train.columns if X_train[c].nunique(dropna=True) > 1
-    ]
+    columnas_validas = [c for c in X_train.columns if X_train[c].nunique(dropna=True) > 1]
 
     X_train = X_train[columnas_validas]
     X_val = X_val[columnas_validas]
@@ -157,7 +152,6 @@ for experimento, columnas in experimentos.items():
     val_p = imputador.transform(X_val).astype(np.float32)
 
     for nombre, modelo in modelos.items():
-
         print("\n" + "-" * 55)
         print("MODELO:", nombre)
         print("-" * 55)
@@ -168,9 +162,7 @@ for experimento, columnas in experimentos.items():
 
         accuracy = accuracy_score(y_val, pred)
 
-        macro_f1 = f1_score(
-            y_val, pred, average="macro", labels=[0, 1, 2, 3, 4], zero_division=0
-        )
+        macro_f1 = f1_score(y_val, pred, average="macro", labels=[0, 1, 2, 3, 4], zero_division=0)
 
         macro_recall = recall_score(
             y_val, pred, average="macro", labels=[0, 1, 2, 3, 4], zero_division=0

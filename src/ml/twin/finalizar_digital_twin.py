@@ -3,15 +3,14 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import (
     accuracy_score,
-    f1_score,
-    recall_score,
     classification_report,
     confusion_matrix,
+    f1_score,
+    recall_score,
 )
 
 # ==================================================
@@ -163,9 +162,7 @@ accuracy = accuracy_score(y_test, pred)
 
 macro_f1 = f1_score(y_test, pred, average="macro", labels=CLASES, zero_division=0)
 
-macro_recall = recall_score(
-    y_test, pred, average="macro", labels=CLASES, zero_division=0
-)
+macro_recall = recall_score(y_test, pred, average="macro", labels=CLASES, zero_division=0)
 
 weighted_f1 = f1_score(y_test, pred, average="weighted", labels=CLASES, zero_division=0)
 
@@ -220,7 +217,6 @@ reales = y_test.to_numpy()
 resultados_routers = []
 
 for host in sorted(np.unique(hosts)):
-
     mascara = hosts == host
 
     reales_host = reales[mascara]
@@ -231,10 +227,7 @@ for host in sorted(np.unique(hosts)):
     clases_presentes = np.unique(reales_host)
 
     if len(clases_presentes) > 1:
-
-        f1_host = f1_score(
-            reales_host, pred_host, average="macro", labels=CLASES, zero_division=0
-        )
+        f1_host = f1_score(reales_host, pred_host, average="macro", labels=CLASES, zero_division=0)
 
         texto_f1 = f"{f1_host:.4f}"
 
@@ -251,7 +244,7 @@ for host in sorted(np.unique(hosts)):
         }
     )
 
-    print(f"{host}: " f"accuracy={acc:.4f} | " f"macro-F1={texto_f1}")
+    print(f"{host}: accuracy={acc:.4f} | macro-F1={texto_f1}")
 
 # ==================================================
 # 9. GUARDAR MODELO Y PREPROCESAMIENTO
@@ -319,9 +312,7 @@ metricas = pd.DataFrame(
     ]
 )
 
-metricas.to_csv(
-    REPORTS / "twin_metricas_finales.csv", index=False, encoding="utf-8-sig"
-)
+metricas.to_csv(REPORTS / "twin_metricas_finales.csv", index=False, encoding="utf-8-sig")
 
 print("\n" + "=" * 65)
 print("ARCHIVOS GENERADOS")

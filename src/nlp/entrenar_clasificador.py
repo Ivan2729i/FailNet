@@ -2,20 +2,19 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-
 from sklearn.base import clone
 from sklearn.dummy import DummyClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import LinearSVC
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import StratifiedKFold, cross_val_predict
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
-    f1_score,
     classification_report,
     confusion_matrix,
+    f1_score,
 )
+from sklearn.model_selection import StratifiedKFold, cross_val_predict
+from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVC
 
 # ==================================================
 # 1. CONFIGURACIÓN
@@ -72,10 +71,7 @@ print("\nDISTRIBUCIÓN")
 print(y.value_counts().to_string())
 
 if y.value_counts().min() < 5:
-    raise ValueError(
-        "Se requieren al menos 5 ejemplos por categoría "
-        "para esta validación cruzada."
-    )
+    raise ValueError("Se requieren al menos 5 ejemplos por categoría para esta validación cruzada.")
 
 # ==================================================
 # 3. MODELOS A COMPARAR
@@ -102,9 +98,7 @@ def crear_pipeline(clasificador):
 
 modelos = {
     "Dummy": crear_pipeline(DummyClassifier(strategy="most_frequent")),
-    "LogisticRegression": crear_pipeline(
-        LogisticRegression(max_iter=2000, random_state=42)
-    ),
+    "LogisticRegression": crear_pipeline(LogisticRegression(max_iter=2000, random_state=42)),
     "LinearSVC": crear_pipeline(LinearSVC(random_state=42)),
 }
 
@@ -118,7 +112,6 @@ resultados = []
 predicciones_modelos = {}
 
 for nombre, pipeline in modelos.items():
-
     print("\n" + "=" * 65)
     print("MODELO:", nombre)
     print("=" * 65)
@@ -129,9 +122,7 @@ for nombre, pipeline in modelos.items():
 
     accuracy = accuracy_score(y, predicciones)
 
-    macro_f1 = f1_score(
-        y, predicciones, average="macro", labels=categorias, zero_division=0
-    )
+    macro_f1 = f1_score(y, predicciones, average="macro", labels=categorias, zero_division=0)
 
     print(f"Accuracy: {accuracy:.4f}")
     print(f"Macro-F1: {macro_f1:.4f}")
@@ -150,9 +141,7 @@ for nombre, pipeline in modelos.items():
 
 tabla = pd.DataFrame(resultados)
 
-tabla = tabla.sort_values(
-    ["macro_f1", "accuracy"], ascending=[False, False]
-).reset_index(drop=True)
+tabla = tabla.sort_values(["macro_f1", "accuracy"], ascending=[False, False]).reset_index(drop=True)
 
 print("\n" + "=" * 65)
 print("COMPARACIÓN FINAL DE ALGORITMOS")

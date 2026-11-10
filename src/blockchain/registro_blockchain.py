@@ -1,9 +1,8 @@
 import hashlib
 import json
 import os
-
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # ==================================================
@@ -26,14 +25,12 @@ HASH_INICIAL = "0" * 64
 
 
 class RegistroBlockchain:
-
     def __init__(self):
 
         self.archivo = ARCHIVO_CADENA
         self.cadena = []
 
         if self.archivo.exists():
-
             self.cargar_cadena()
 
             valido, mensaje = self.verificar_cadena()
@@ -44,7 +41,6 @@ class RegistroBlockchain:
             print("Blockchain existente cargado correctamente.")
 
         else:
-
             self.crear_bloque_genesis()
 
             self.guardar_cadena()
@@ -79,7 +75,7 @@ class RegistroBlockchain:
 
         bloque = {
             "indice": 0,
-            "fecha": datetime.now(timezone.utc).isoformat(),
+            "fecha": datetime.now(UTC).isoformat(),
             "tipo": "genesis",
             "datos": {"descripcion": ("Bloque inicial de NetInsight AI")},
             "hash_anterior": HASH_INICIAL,
@@ -110,7 +106,7 @@ class RegistroBlockchain:
 
         bloque = {
             "indice": len(self.cadena),
-            "fecha": datetime.now(timezone.utc).isoformat(),
+            "fecha": datetime.now(UTC).isoformat(),
             "tipo": tipo.strip(),
             "datos": deepcopy(datos),
             "hash_anterior": anterior["hash"],
@@ -139,7 +135,6 @@ class RegistroBlockchain:
         campos = {"indice", "fecha", "tipo", "datos", "hash_anterior", "hash"}
 
         for indice, bloque in enumerate(cadena):
-
             if not isinstance(bloque, dict):
                 return False, (f"Estructura incorrecta en bloque {indice}")
 
@@ -165,13 +160,12 @@ class RegistroBlockchain:
                 hash_calculado = self.calcular_hash(bloque)
 
             except (TypeError, ValueError):
-                return False, (f"No se puede calcular el hash " f"del bloque {indice}")
+                return False, (f"No se puede calcular el hash del bloque {indice}")
 
             if bloque["hash"] != hash_calculado:
                 return False, (f"Hash incorrecto en bloque {indice}")
 
             if indice == 0:
-
                 if bloque["tipo"] != "genesis":
                     return False, ("El bloque inicial no es génesis.")
 
@@ -179,7 +173,6 @@ class RegistroBlockchain:
                     return False, ("Referencia inicial incorrecta.")
 
             else:
-
                 anterior = cadena[indice - 1]
 
                 if bloque["hash_anterior"] != anterior["hash"]:
@@ -193,9 +186,7 @@ class RegistroBlockchain:
 
     def guardar_cadena(self):
 
-        contenido = json.dumps(
-            self.cadena, indent=4, ensure_ascii=False, allow_nan=False
-        )
+        contenido = json.dumps(self.cadena, indent=4, ensure_ascii=False, allow_nan=False)
 
         temporal = self.archivo.with_suffix(".json.tmp")
 
@@ -232,8 +223,7 @@ class RegistroBlockchain:
     def existe_demo(self, demo_id):
 
         return any(
-            isinstance(bloque.get("datos"), dict)
-            and bloque["datos"].get("demo_id") == demo_id
+            isinstance(bloque.get("datos"), dict) and bloque["datos"].get("demo_id") == demo_id
             for bloque in self.cadena
         )
 
@@ -243,7 +233,6 @@ class RegistroBlockchain:
 # ==================================================
 
 if __name__ == "__main__":
-
     print("=" * 65)
     print("BLOCKCHAIN SIMULADO - NETINSIGHT AI")
     print("=" * 65)
@@ -261,7 +250,7 @@ if __name__ == "__main__":
             "datos": {
                 "resultado": "Falla",
                 "modelo": "Random Forest",
-                "descripcion": ("Ejemplo de detección de falla " "en tráfico de red."),
+                "descripcion": ("Ejemplo de detección de falla en tráfico de red."),
             },
         },
         {
@@ -270,9 +259,7 @@ if __name__ == "__main__":
             "datos": {
                 "nivel_trafico": 3,
                 "modelo": "Random Forest",
-                "descripcion": (
-                    "Ejemplo de clasificación " "de intensidad de tráfico."
-                ),
+                "descripcion": ("Ejemplo de clasificación de intensidad de tráfico."),
             },
         },
         {
@@ -281,7 +268,7 @@ if __name__ == "__main__":
             "datos": {
                 "categoria": "conectividad",
                 "dispositivo": "R3",
-                "descripcion": ("Ejemplo de análisis de " "un reporte técnico."),
+                "descripcion": ("Ejemplo de análisis de un reporte técnico."),
             },
         },
     ]
@@ -293,9 +280,7 @@ if __name__ == "__main__":
     print("\nREGISTRO DE ANÁLISIS")
 
     for demo in demostraciones:
-
         if blockchain.existe_demo(demo["demo_id"]):
-
             print(f"Ya existe: {demo['tipo']}")
 
             continue
@@ -304,7 +289,7 @@ if __name__ == "__main__":
 
         bloque = blockchain.agregar_bloque(tipo=demo["tipo"], datos=datos)
 
-        print(f"Agregado {demo['tipo']}: " f"bloque {bloque['indice']}")
+        print(f"Agregado {demo['tipo']}: bloque {bloque['indice']}")
 
     # ----------------------------------------------
     # VERIFICAR CADENA ORIGINAL
@@ -330,7 +315,6 @@ if __name__ == "__main__":
     print("=" * 65)
 
     for bloque in blockchain.obtener_bloques():
-
         print(f"\nBloque: {bloque['indice']}")
 
         print(f"Tipo: {bloque['tipo']}")
@@ -339,7 +323,7 @@ if __name__ == "__main__":
 
         print(f"Hash SHA-256: {bloque['hash']}")
 
-        print(f"Hash anterior: " f"{bloque['hash_anterior']}")
+        print(f"Hash anterior: {bloque['hash_anterior']}")
 
     # ----------------------------------------------
     # PRUEBA DE MANIPULACIÓN

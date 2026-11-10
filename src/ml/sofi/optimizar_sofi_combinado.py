@@ -2,11 +2,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
-from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import TimeSeriesSplit
 
 # ==================================================
 # 1. CONFIGURACIÓN
@@ -39,9 +38,7 @@ def cargar(nombre):
 sw1 = cargar("SOFI CoreSwitch-I.csv")
 sw2 = cargar("SOFI CoreSwitch-II.csv")
 
-df = sw1.merge(
-    sw2, on="timestamp", how="inner", suffixes=("_I", "_II"), validate="one_to_one"
-)
+df = sw1.merge(sw2, on="timestamp", how="inner", suffixes=("_I", "_II"), validate="one_to_one")
 
 df = df.sort_values("timestamp").reset_index(drop=True)
 
@@ -81,7 +78,6 @@ probabilidades = np.full(len(X_dev), np.nan)
 ventanas = []
 
 for numero, (train_idx, val_idx) in enumerate(cv.split(X_dev), 1):
-
     ids_train = set(episodios.iloc[train_idx]) - {0}
     ids_val = set(episodios.iloc[val_idx]) - {0}
 
@@ -120,9 +116,7 @@ for numero, (train_idx, val_idx) in enumerate(cv.split(X_dev), 1):
 
     ventanas.append((numero, val_idx))
 
-    print(
-        f"Ventana {numero}: " f"{len(val_idx)} registros, " f"{int(y_val.sum())} fallas"
-    )
+    print(f"Ventana {numero}: {len(val_idx)} registros, {int(y_val.sum())} fallas")
 
 # ==================================================
 # 4. COMPARAR UMBRALES
@@ -138,7 +132,6 @@ umbrales = np.round(np.arange(0.20, 0.501, 0.025), 3)
 resultados = []
 
 for umbral in umbrales:
-
     pred = (probs >= umbral).astype(int)
 
     tn, fp, fn, tp = confusion_matrix(y_real, pred, labels=[0, 1]).ravel()
@@ -162,9 +155,7 @@ for umbral in umbrales:
 
 tabla = pd.DataFrame(resultados)
 
-tabla = tabla.sort_values(
-    ["f1", "recall", "falsas_alarmas"], ascending=[False, False, True]
-)
+tabla = tabla.sort_values(["f1", "recall", "falsas_alarmas"], ascending=[False, False, True])
 
 print("\n" + "=" * 60)
 print("COMPARACIÓN DE UMBRALES")
@@ -194,13 +185,12 @@ print(f"Falsas alarmas: {int(mejor['falsas_alarmas'])}")
 print("\nRESULTADOS POR VENTANA")
 
 for numero, val_idx in ventanas:
-
     reales = y_dev.iloc[val_idx].to_numpy()
     pred = (probabilidades[val_idx] >= umbral_finalista).astype(int)
 
     tn, fp, fn, tp = confusion_matrix(reales, pred, labels=[0, 1]).ravel()
 
-    print(f"Ventana {numero}: " f"TP={tp}, FP={fp}, FN={fn}, TN={tn}")
+    print(f"Ventana {numero}: TP={tp}, FP={fp}, FN={fn}, TN={tn}")
 
 # ==================================================
 # 6. GUARDAR RESULTADOS

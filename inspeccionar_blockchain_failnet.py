@@ -1,4 +1,3 @@
-
 import ast
 import json
 from pathlib import Path
@@ -66,11 +65,7 @@ if CADENA.is_file():
     elif isinstance(estructura, dict):
         print("Claves principales:", list(estructura.keys()))
 
-        listas = [
-            (clave, valor)
-            for clave, valor in estructura.items()
-            if isinstance(valor, list)
-        ]
+        listas = [(clave, valor) for clave, valor in estructura.items() if isinstance(valor, list)]
 
         if listas:
             nombre, bloques = listas[0]
