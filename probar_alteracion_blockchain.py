@@ -43,7 +43,7 @@ def escribir_atomico(ruta, contenido):
 def leer_bloques(contenido):
     bloques = json.loads(contenido.decode("utf-8-sig"))
     if not isinstance(bloques, list):
-        raise ValueError("cadena.json no contiene una lista de bloques.")
+        raise TypeError("cadena.json no contiene una lista de bloques.")
     return bloques
 
 
@@ -94,15 +94,15 @@ def alterar(indice):
         salida.write(original)
         salida.flush()
         os.fsync(salida.fileno())
-    try:
-        with ESTADO.open("x", encoding="utf-8") as salida:
-            json.dump(informacion, salida, indent=2, ensure_ascii=False)
-            salida.flush()
-            os.fsync(salida.fileno())
-        escribir_atomico(CADENA, modificado)
-    except Exception:
-        # Mantener respaldo; posible recuperación manual si la operación se interrumpió.
-        raise
+
+    # Guardar los datos necesarios para restaurar la cadena.
+    escribir_atomico(
+        ESTADO,
+        json.dumps(informacion, ensure_ascii=False, indent=2).encode("utf-8"),
+    )
+
+    # Alterar únicamente el archivo de la cadena.
+    escribir_atomico(CADENA, modificado)
 
     print(f"Bloque alterado: índice {indice} (de {len(bloques)} bloques).")
     print(f"Hash anterior: {hash_original[:20]}...")
@@ -180,5 +180,5 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as error:
+    except (OSError, ValueError, TypeError, RuntimeError) as error:
         raise SystemExit(f"ERROR: {error}")

@@ -33,7 +33,7 @@ def cargar_modelo_twin():
     artefacto = joblib.load(MODELO_PATH)
 
     if not isinstance(artefacto, dict):
-        raise ValueError("Formato del modelo Digital Twin inválido.")
+        raise TypeError("Formato del modelo Digital Twin inválido.")
 
     requeridos = {"modelo", "imputador", "columnas"}
     faltantes = requeridos - artefacto.keys()
@@ -51,7 +51,7 @@ def cargar_modelo_twin():
     if getattr(imputador, "n_features_in_", None) != 67:
         raise ValueError("El imputador no corresponde a las 67 características.")
 
-    clases = set(int(c) for c in modelo.classes_)
+    clases = {int(c) for c in modelo.classes_}
     if clases != set(range(5)):
         raise ValueError(f"Clases inesperadas en el modelo: {clases}")
 

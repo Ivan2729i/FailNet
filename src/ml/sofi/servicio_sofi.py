@@ -37,7 +37,7 @@ def cargar_modelo_sofi():
     }
 
     if not isinstance(artefacto, dict):
-        raise ValueError("El modelo SOFI tiene un formato inválido.")
+        raise TypeError("El modelo SOFI tiene un formato inválido.")
 
     faltantes = campos - set(artefacto)
 

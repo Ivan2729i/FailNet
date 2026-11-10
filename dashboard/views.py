@@ -986,10 +986,11 @@ def analizar_texto_pnl(request):
     try:
         cuerpo = json.loads(request.body)
         if not isinstance(cuerpo, dict):
-            raise ValueError("El cuerpo debe ser un objeto JSON.")
+            raise TypeError("El cuerpo debe ser un objeto JSON.")
+
         texto = cuerpo.get("texto")
         if not isinstance(texto, str):
-            raise ValueError("El campo texto debe ser una cadena.")
+            raise TypeError("El campo texto debe ser una cadena.")
         texto = texto.strip()
         if len(texto) < 3:
             raise ValueError("Escribe un reporte de al menos 3 caracteres.")
