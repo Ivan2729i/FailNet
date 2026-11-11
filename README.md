@@ -113,8 +113,6 @@ Abre la aplicación en:
 
 **FailNet · Network Analysis**
 
-Desarrollado con Python, Django, React e inteligencia artificial.
-
 </div>
 
 ---
